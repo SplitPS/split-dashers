@@ -66,7 +66,7 @@ async function customPassword(message, defaultValue = '') {
 
 
   if (isDismissed) {
-    return null; // Mimics native prompt() returning null on Cancel
+    return customPassword(message, defaultValue)
   }
   return text;
 
