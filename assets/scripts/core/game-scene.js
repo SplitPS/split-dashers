@@ -47,7 +47,31 @@ if (window.location.href.startsWith("file://")) {
       }
     }
   });
+  /**
+   * Opens a blocking loading spinner modal.
+   * @param {string} title - The header text for the loader (Defaults to "Loading")
+   * @param {string} text - Optional sub-text/description below the spinner
+   */
+  async function showLoader(title = "Loading", text = "Please wait...") {
+    // We return Swal.fire directly so it sets up the window overlay natively
+    return Swal.fire({
+      title: title,
+      text: text,
+      allowOutsideClick: false, // Prevents user from clicking background to close it
+      allowEscapeKey: false,    // Prevents user from hitting Esc to close it
+      showConfirmButton: false, // Hides the OK button completely
+      didOpen: () => {
+        Swal.showLoading();    // Activates the built-in animated spinning wheel
+      }
+    });
+  }
 
+  /**
+   * Closes the currently active loading modal.
+   */
+  function hideLoader() {
+    Swal.close();
+  }
 
 
 
@@ -4084,6 +4108,7 @@ _buildAccountPopup() {
   (async () => {
     window.username = await customPrompt("Enter your username");
     window.password = await customPassword("Enter your password");
+
 
   })();
 }
