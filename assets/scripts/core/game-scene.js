@@ -1,3 +1,4 @@
+import ModalManager from '/assets/scripts/libs/ModalManager.js';
 class PracticeMode {
   constructor() {
     this.checkpoints = [];
@@ -3996,7 +3997,8 @@ _buildAccountPopup() {
     return;
   }
   this._accountPopup = true;
-
+  let modals = new ModalManager(this.scene);
+  modals.createInputModal({title: 'enter your FUCKING username', placeholder: 'username', maxLength: 67, onSearch: (resp) => login(resp)})
 }
  _buildHowToPlayPopup() {
   if (this._howToPlayPopup) {
