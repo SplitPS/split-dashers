@@ -42,7 +42,7 @@ async function customAlert(message, title = 'Alert') {
 
 
   if (isDismissed) {
-    return null; // Mimics native prompt() returning null on Cancel
+    return customPrompt(message, defaultValue); // Mimics native prompt() returning null on Cancel
   }
   return text;
 }
