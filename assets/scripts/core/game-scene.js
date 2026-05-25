@@ -1,4 +1,3 @@
-import ModalManager from '/assets/scripts/libs/ModalManager.js';
 class PracticeMode {
   constructor() {
     this.checkpoints = [];
