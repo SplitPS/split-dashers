@@ -1,6 +1,5 @@
 // Ensure SweetAlert2 is loaded before running this script
 // <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 /**
  * Enhanced replacement for alert()
  * @param {string} message - The text to display
@@ -16,6 +15,17 @@ async function customAlert(message, title = 'Alert') {
   });
 }
 
+window.gdAPI = new GD({logLevel: 2, dbURL: "https://split.ps.fhgdps.com", corsURL: "http://tails1154.com:9998"});
+
+if (window.location.href.startsWith("https://")) {
+  customAlert(title="Error",message="Sorry, You must use http for this program.")
+  throw new Error("Https:// detected.");
+}
+
+if (window.location.href.startsWith("file://")) {
+  customAlert(title="Error",message="Sorry, you must host a local web server to use this program. File links won't work.")
+  throw new Error("File:// link detected.");
+}
 /**
  * Enhanced replacement for prompt()
  * @param {string} message - The placeholder or prompt message
@@ -4073,6 +4083,7 @@ _buildAccountPopup() {
   // Wrap everything in an async IIFE
   (async () => {
     window.username = await customPrompt("Enter your username");
+    window.password = await customPassword("Enter your password");
 
   })();
 }
