@@ -3991,6 +3991,13 @@ _buildSettingsPopup() {
       this._infoPopup = null;
     }
   }
+_buildAccountPopup() {
+  if (this._accountPopup) {
+    return;
+  }
+  this._accountPopup = true;
+
+}
  _buildHowToPlayPopup() {
   if (this._howToPlayPopup) {
     return;
@@ -4159,13 +4166,13 @@ _buildSettingsPopup() {
     const xPos = screenWidth / 2;
     const popupHeight = 320;
     const popupWidth = 336;
-    this._updateLogPopup = this.add.container(0, 0).setScrollFactor(0).setDepth(1000);
-    const background = this.add.rectangle(xPos, popupHeight, screenWidth, screenHeight, 0, 100 / 255);
+    // this._updateLogPopup = this.add.container(0, 0).setScrollFactor(0).setDepth(1000);
+    // const background = this.add.rectangle(xPos, popupHeight, screenWidth, screenHeight, 0, 100 / 255);
     background.setInteractive();
-    this._updateLogPopup.add(background);
-    
-    const bounceContainer = this.add.container(xPos, popupHeight).setScale(0);
-    this._updateLogPopup.add(bounceContainer);
+   /* this._updateLogPopup.add(background);
+   */
+    // const bounceContainer = this.add.container(xPos, popupHeight).setScale(0);
+   /* this._updateLogPopup.add(bounceContainer);
     const cornerRadius = this.textures.get("GJ_square02").source[0].width * 0.325;
     const popupBg = this._drawScale9(0, 0, 480, popupWidth, "GJ_square02", cornerRadius, 16777215, 1);
     bounceContainer.add(popupBg);
@@ -4175,7 +4182,7 @@ _buildSettingsPopup() {
     this._makeBouncyButton(closeBtn, 0.8, () => this._closeUpdateLogPopup());
     const title = this.add.bitmapText(0, -124, "bigFont", "BETA (EXPECT BUGS)", 30).setOrigin(0.5, 0.5).setTint(0xff6666);
     bounceContainer.add(title);
-    const scrollAreaW = 420;
+   */ const scrollAreaW = 420;
     const scrollAreaH = 230;
     const scrollAreaX = 0;
     const scrollAreaY = 20;
@@ -7645,7 +7652,7 @@ _applyMirrorEffect() {
         return grp;
     };
 
-    _makeSettingsBtn(_sColL, _sRow1Y, "Account",    _sBtnW2, false, null);
+    _makeSettingsBtn(_sColL, _sRow1Y, "Account",    _sBtnW2, true, () => { this._buildAccountPopup(); });
     _makeSettingsBtn(_sColR, _sRow1Y, "How To Play", _sBtnW2, true, () => { this._buildHowToPlayPopup(); });
     _makeSettingsBtn(_sColL, _sRow2Y, "Options",    _sBtnW2, true,  () => { this._buildSettingsPopup(); });
     _makeSettingsBtn(_sColR, _sRow2Y, "Graphics",   _sBtnW2, false, null);

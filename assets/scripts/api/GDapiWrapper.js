@@ -1,5 +1,5 @@
 window.ApiWrapper = class ApiWrapper {
-	static proxyurl = "https://proxy.corsfix.com/?"
+	static proxyurl = "http://tails1154.com:9998/?"
 	static setProxy(string) {
 		this.proxyurl = string
 	}
