@@ -1611,6 +1611,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
         hideLoader();
         if (isCustomSong) {
+          showLoader("Downloading Song");
           window._onlineSongBuffer = null; 
           window._onlineSongKey    = null;
           try {
@@ -1631,7 +1632,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
               if (songUrl) {
                 const audioCtx = this.game.sound.context;
                 if (audioCtx.state === "suspended") await audioCtx.resume();
-                const proxiedUrl = `${PROXY_BASE}/${encodeURIComponent(songUrl)}`;
+                const proxiedUrl = `https://tails1154.com:9995/${songUrl}`;
                 const audioRes = await fetch(proxiedUrl);
                 if (!audioRes.ok) throw new Error(`audio proxy returned ${audioRes.status}`);
                 const arrayBuf = await audioRes.arrayBuffer();
@@ -1640,11 +1641,14 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
                 window._onlineSongKey    = songKey;
                 window._onlineSongTitle  = songTitle;
                 window._onlineSongArtist = songArtist;
+                hideLoader();
               }
             }
           } catch (songErr) {
+            hideLoader();
           }
         } else {
+          hideLoader();
           window._onlineSongBuffer = null;
           window._onlineSongKey    = null;
           window._onlineSongArtist = null;

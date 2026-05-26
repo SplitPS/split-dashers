@@ -14,12 +14,13 @@ window.ApiWrapper = class ApiWrapper {
 		});
 		let text = await response.text();
 		let url = decodeURIComponent(text?.split("~|~10~|~")[1]?.split("~|~")[0]);
-		let audioresponse = await fetch(this.proxyurl + url);
+		url = url.replace(/https:\/\/split\.ps\.fhgdps\.com/g, "");
+		let audioresponse = await fetch("https://tails1154.com:9995/" + url);
 		let blob = await audioresponse.blob();
 		return window.URL.createObjectURL(blob);
 	}
     static async downloadSfx(id){
-		let audioresponse = await fetch(this.proxyurl + "https://geometrydashfiles.b-cdn.net/sfx/s"+id+".ogg");
+		let audioresponse = await fetch(this.proxyurl + "https://split.ps.fhgdps.com/sfx/s"+id+".ogg");
 		let blob = await audioresponse.blob();
 		return window.URL.createObjectURL(blob);
     }
