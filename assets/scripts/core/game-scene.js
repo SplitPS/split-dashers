@@ -82,9 +82,9 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
     levelDesc: encodedDesc,
     levelVersion: level.version || 1,
     levelLength: level.levelLength || 0,
-    audioTrack: officialSong,
+    audioTrack: level.officialSongId,
     auto: 0,
-    password: 0, // Set to 0 (no copy) or password number if supported by your level object
+    password: 1, // Set to 0 (no copy) or password number if supported by your level object
                                       original: 0,
                                       twoPlayer: 0,
                                       songID: customSong,
