@@ -95,7 +95,7 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
                                       ldm: 0,
                                       levelString: level.levelString || "", // Must already be gzip compressed + base64
                                       secret: "Wmfd2893gb7",
-                                      seed2: await generateSeed2(level.levelString);
+                                      seed2: await generateSeed2(level.levelString)
   });
 
   // 3. Post the data to the server
