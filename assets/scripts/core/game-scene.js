@@ -600,7 +600,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     const xPos = 50; // A little bit of padding from the left edge
     const yPos = this.cameras.main.height * 0.60;
     if (localStorage.getItem("loggedIn") == "true") {
-    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "GJ_chatBtn_02_001.png")
+    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "GJ_chatBtn_01_001.png")
     .setOrigin(0, 0.5) // Optional: Makes alignment much easier (see below)
     .setScrollFactor(0)
     .setDepth(30)
@@ -4204,7 +4204,7 @@ buildAccountInfo() {
 
     showLoader();
     try {
-      await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password')});
+      await window.gd.users.login({username:localStorage.getItem('username'),password:localStorage.getItem('password')});
     } catch (e) {
       console.warn(e);
       hideLoader();
@@ -4234,7 +4234,7 @@ buildAccountInfo() {
         window.location.href = window.location.href; // "redirect"
       return
     }
-    await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password')});
+    await window.gd.users.login({username:localStorage.getItem('username'),password:localStorage.getItem('password')});
     hideLoader();
     await customAlert("");
   })();
