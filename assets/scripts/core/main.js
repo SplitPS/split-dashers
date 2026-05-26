@@ -1,3 +1,7 @@
+
+
+
+
 function checkForAutoLoad() {
   const assetsLoaded = localStorage.getItem('webdash_assets_loaded') === 'true';
   const lastLoadTime = parseInt(localStorage.getItem('webdash_last_load_time') || '0');
