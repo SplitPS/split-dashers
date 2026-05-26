@@ -597,19 +597,20 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       this._buildInfoPopup();
     }, () => this._menuActive && !this._infoPopup);
     // Calculate your positions based on the game canvas dimensions
-    const xPos = 20; // A little bit of padding from the left edge
+    const xPos = 30; // A little bit of padding from the left edge
     const yPos = this.cameras.main.height * 0.80; // 80% down from the top (which leaves 20% at the bottom)
     if (localStorage.getItem("loggedIn") == "true") {
-    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "accountBtn_settings_001.png")
+    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "GJ_viewProfileTxt_001.png")
     .setOrigin(0, 0.5) // Optional: Makes alignment much easier (see below)
     .setScrollFactor(0)
     .setDepth(30)
     .setScale(0.64)
     .setTint(Phaser.Display.Color.GetColor(255, 255, 255))
     .setInteractive();
-    this._expandHitArea(this._menuAccBtn, 0.64, () => {
+    this._expandHitArea(this._menuAccBtn, 1.5);
+    this._makeBouncyButton(this._menuAccBtn, 0.64, () => {
       this.buildAccountInfo();
-    })
+    });
     }
     this._expandHitArea(this._menuInfoBtn, 1.5);
     this._makeBouncyButton(this._menuInfoBtn, 0.64, () => {
