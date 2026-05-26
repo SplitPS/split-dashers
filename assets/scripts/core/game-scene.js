@@ -299,6 +299,10 @@ async function showAccountMenu() {
 
 function _uploadLVL(level) {
   (async () => {
+    if (localStorage.getItem("loggedIn") != "true") {
+      await showError("You must be logged in to do that.");
+      return
+    }
     showLoader("Uploading...")
     try {
     let name = level.levelName
