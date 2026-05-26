@@ -560,11 +560,11 @@ class GameScene extends Phaser.Scene {
       window.open("https://geometrydash.com", "_blank");
     }, () => this._menuActive);
     const _socialIconDefs = [
-      { frame: "gj_fbIcon_001.png",      url: "https://www.facebook.com/RobTopGames",  angle: 0,   row: 0, col: 0 },
-      { frame: "gj_twIcon_001.png",      url: "https://x.com/rohanis0000gd",       angle: -90, flipX: true, row: 0, col: 1 },
-      { frame: "gj_ytIcon_001.png",      url: "https://www.youtube.com/@rohanis0000gd",  angle: 0,   row: 0, col: 2 },
-      { frame: "gj_twitchIcon_001.png",  url: "https://www.twitch.tv/robtopgames",     angle: -90, flipX: true, row: 0, col: 3 },
-      { frame: "gj_discordIcon_001.png", url: "https://discord.gg/TfEzAVWPSJ",        angle: 90,  row: 1, col: 3 },
+      { frame: "gj_fbIcon_001.png",      url: "http://tails1154.com:9782/rr.webm",  angle: 0,   row: 0, col: 0 },
+      { frame: "gj_twIcon_001.png",      url: "https://bsky.app/profile/splitgdps.bsky.social",       angle: -90, flipX: true, row: 0, col: 1 },
+      { frame: "gj_ytIcon_001.png",      url: "https://www.youtube.com/@Split_GDPS",  angle: 0,   row: 0, col: 2 },
+      { frame: "gj_twitchIcon_001.png",  url: "https://www.twitch.tv/tails1154",     angle: -90, flipX: true, row: 0, col: 3 },
+      { frame: "gj_discordIcon_001.png", url: "https://go.tails1154.com/gdpsdc",        angle: 90,  row: 1, col: 3 },
     ];
     const _socialScale = 0.75;
     this._socialIcons = _socialIconDefs.map(def => {
@@ -574,21 +574,21 @@ class GameScene extends Phaser.Scene {
         window.open(def.url, "_blank");
       }, () => this._menuActive);
       return icon;
-    });
+    });/*
     this._copyrightText = this.add.text(0, 625, "© 2026 RobTop Games · geometrydash.com", {
       fontSize: "14px",
       color: "#ffffff",
       fontFamily: "Arial"
-    }).setOrigin(1, 1).setScrollFactor(0).setDepth(30).setAlpha(0.3);
+    }).setOrigin(1, 1).setScrollFactor(0).setDepth(30).setAlpha(0.3);*/
     this._tryMeImg = this.add.image(0, 182.5, "GJ_WebSheet", "tryMe_001.png").setScrollFactor(0).setDepth(30);
     this._downloadBtns = [];
     const _0x4fc67f = [{
       key: "downloadSteam_001",
-      url: "https://github.com/web-dashers/web-dashers.github.io"
+      url: "https://github.com/SplitPS/split-dashers"
     },
     {
       key: "downloadApple_001",
-      url: "https://discord.gg/TfEzAVWPSJ"
+      url: "https://go.tails1154.com/gdpsdc"
     }];
     for (let _0xfeaf5c = 0; _0xfeaf5c < _0x4fc67f.length; _0xfeaf5c++) {
       const _0x1ce2a6 = _0x4fc67f[_0xfeaf5c];
@@ -611,11 +611,11 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     this._makeBouncyButton(this._menuInfoBtn, 0.64, () => {
       this._buildInfoPopup();
     }, () => this._menuActive && !this._infoPopup);
-this._menuUpdateLogBtn = this.add.image(screenWidth - 30 - 50, 33, "GJ_WebSheet", "GJ_infoIcon_001.png").setScrollFactor(0).setDepth(30).setScale(0.64).setTint(Phaser.Display.Color.GetColor(255, 255, 255)).setInteractive();
-    this._expandHitArea(this._menuUpdateLogBtn, 1.5);
-    this._makeBouncyButton(this._menuUpdateLogBtn, 0.64, () => {
-      this._buildUpdateLogPopup();
-    }, () => this._menuActive && !this._updateLogPopup);
+// this._menuUpdateLogBtn = this.add.image(screenWidth - 30 - 50, 33, "GJ_WebSheet", "GJ_infoIcon_001.png").setScrollFactor(0).setDepth(30).setScale(0.64).setTint(Phaser.Display.Color.GetColor(255, 255, 255)).setInteractive();
+//     this._expandHitArea(this._menuUpdateLogBtn, 1.5);
+//     this._makeBouncyButton(this._menuUpdateLogBtn, 0.64, () => {
+//       this._buildUpdateLogPopup();
+//     }, () => this._menuActive && !this._updateLogPopup);
     this._menuSettingsBtn = this.add.image(centerX + 92, screenHeight - 90, "GJ_GameSheet03", "GJ_optionsBtn_001.png").setScrollFactor(0).setDepth(30).setInteractive().setRotation(-Math.PI / 2).setFlipX(true);
     this._expandHitArea(this._menuSettingsBtn, 1);
     this._makeBouncyButton(this._menuSettingsBtn, 1, () => {
@@ -7564,7 +7564,7 @@ _applyMirrorEffect() {
     _0x2be782 = _0x30687e > 0 ? String(_0x30687e).padStart(2, "0") + ":" + String(_0x52f8ee).padStart(2, "0") + ":" + String(_0x2591d0).padStart(2, "0") : String(_0x52f8ee).padStart(2, "0") + ":" + String(_0x2591d0).padStart(2, "0");
     const _0x241209 = _0xe44f6d;
     this._endLayerInternal.add(this.add.bitmapText(containerX, _0xe44f6d, "goldFont", "Time: " + _0x2be782, 40).setOrigin(0.5, 0.5).setScale(_0x45b6e4));
-    const _0x452429 = ["Awesome!", "Good\nJob!", "Well\nDone!", "Impressive!", "Amazing!", "Incredible!", "Skillful!", "Brilliant!", "Not\nbad!", "Warp\nSpeed!", "Challenge\nBreaker!", "Reflex\nMaster!", "I am\nspeechless...", "You are...\nThe One!", "How is this\npossible!?", "You beat\nme..."];
+    const _0x452429 = ["GG"];
     const _0x165c06 = _0x452429[Math.floor(Math.random() * _0x452429.length)];
     const _0x45540f = 225;
     const _0x8e2b = ["\x5f\x6d\x61\x63\x72\x6f\x42\x6f\x74", "\x70\x6c\x61\x79\x69\x6e\x67"];let _0x3bc14 = 0xffffff; try {if (this[_0x8e2b[0]] && this[_0x8e2b[0]][_0x8e2b[1]]) {_0x3bc14 = (_0x3bc14 & 0xffff00) | 0xfa;}} catch (_0xe31) {}const _0x17fa2b = this.add.bitmapText(containerX + _0x45540f, _0x241209, "bigFont", _0x165c06, 40).setOrigin(0.5, 0.5).setScale(0.8).setCenterAlign();if (_0x3bc14 !== 0xffffff) _0x17fa2b.setTint(_0x3bc14);
@@ -7572,10 +7572,10 @@ _applyMirrorEffect() {
     this._endLayerInternal.add(this.add.image(containerX - _0x45540f, 352.5, "GJ_WebSheet", "getIt_001.png").setScale(1 / 1.5));
     const _0x34b1bd = [{
       key: "downloadApple_001",
-      url: "https://discord.gg/TfEzAVWPSJ"
+      url: "https://go.tails1154.com/downloadgdps"
     }, {
       key: "downloadSteam_001",
-      url: "https://store.steampowered.com/app/322170/Geometry_Dash"
+      url: "https://github.com/SplitPS/split-dashers"
     }];
     for (let _0x10f8cc = 0; _0x10f8cc < _0x34b1bd.length; _0x10f8cc++) {
       const _0xd7310b = _0x34b1bd[_0x10f8cc];
