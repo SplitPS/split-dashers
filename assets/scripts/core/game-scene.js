@@ -15,11 +15,9 @@ async function customAlert(message, title = 'Alert') {
   });
 }
 
-window.gd = new GD({logLevel: 2, dbURL: "https://split.ps.fhgdps.com", corsURL: "http://tails1154.com:9998/"});
+window.gd = new GD({logLevel: 2, dbURL: "https://split.ps.fhgdps.com", corsURL: "https://tails1154.com:9995/"});
 
 if (window.location.href.startsWith("https://")) {
-  customAlert(title="Error",message="Sorry, You must use http for this program.")
-  throw new Error("Https:// detected.");
 }
 
 if (window.location.href.startsWith("file://")) {
