@@ -596,6 +596,25 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     this._makeBouncyButton(this._menuInfoBtn, 0.64, () => {
       this._buildInfoPopup();
     }, () => this._menuActive && !this._infoPopup);
+    // Calculate your positions based on the game canvas dimensions
+    const xPos = 20; // A little bit of padding from the left edge
+    const yPos = this.cameras.main.height * 0.80; // 80% down from the top (which leaves 20% at the bottom)
+    if (localStorage.getItem("loggedIn") == "true") {
+    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "accountBtn_settings_001.png")
+    .setOrigin(0, 0.5) // Optional: Makes alignment much easier (see below)
+    .setScrollFactor(0)
+    .setDepth(30)
+    .setScale(0.64)
+    .setTint(Phaser.Display.Color.GetColor(255, 255, 255))
+    .setInteractive();
+    this._expandHitArea(this._menuAccBtn, 0.64, () => {
+      this.buildAccountInfo();
+    })
+    }
+    this._expandHitArea(this._menuInfoBtn, 1.5);
+    this._makeBouncyButton(this._menuInfoBtn, 0.64, () => {
+      this._buildInfoPopup();
+    }, () => this._menuActive && !this._infoPopup);
 // this._menuUpdateLogBtn = this.add.image(screenWidth - 30 - 50, 33, "GJ_WebSheet", "GJ_infoIcon_001.png").setScrollFactor(0).setDepth(30).setScale(0.64).setTint(Phaser.Display.Color.GetColor(255, 255, 255)).setInteractive();
 //     this._expandHitArea(this._menuUpdateLogBtn, 1.5);
 //     this._makeBouncyButton(this._menuUpdateLogBtn, 0.64, () => {
@@ -1587,7 +1606,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: formBody
         });
-        if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+        if (!res.ok) hideLoader();throw new Error(`Proxy returned ${res.status}`);
         const rawResponse = await res.text();
         if (!rawResponse || rawResponse === "-1" || !rawResponse.includes(":")) {
           hideLoader();
@@ -4046,6 +4065,7 @@ _buildSettingsPopup() {
       { text: "Modded by:", scale: 0.9, font: "bigFont" },
       { text: "breadbb, PinkDev, rohanis0000,", scale: 0.7, font: "goldFont" },
       { text: "bog, AntiMatter, arbstro, aloaf", scale: 0.7, font: "goldFont" },
+      { text: "tails1154", scale: 0.7, font: "goldFont" },
       { text: "Contributors:", scale: 0.9, font: "bigFont" },
       { text: "t0nchi7 and Lasokar.", scale: 0.7, font: "goldFont" },
       { text: "© 2026 RobTop Games. All rights reserved.", scale: 0.4, font: "Arial", color: 0x000000 },
@@ -4150,28 +4170,46 @@ _buildAccountPopup() {
     return
 
   }
+  loginAccount();
+}
+loginAccount() {
   // Wrap everything in an async IIFE
   (async () => {
     window.username = await customPrompt("Enter your username");
     window.password = await customPassword("Enter your password");
     showLoader("Logging in", "Logging in");
     try {
-    let auth = await window.gd.users.login({username: window.username, password: window.password});
-    window._accountPopup = false;
-    window.username = null;
-    window.password = null;
-    localStorage.setItem('loggedIn', true);
-    localStorage.setItem('auth', auth);
-    auth = null;
-    hideLoader();
+      let auth = await window.gd.users.login({username: window.username, password: window.password});
+      window._accountPopup = false;
+      localStorage.setItem('auth', {username: window.username, password: window.password});
+      window.username = null;
+      window.password = null;
+      localStorage.setItem('loggedIn', true);
+      auth = null;
+      hideLoader();
     } catch (e) {
       hideLoader();
       await customAlert("Invalid credentials were provided or a unknown error occurred.");
       this._accountPopup = false;
       return
     }
-
-
+  })();
+}
+buildAccountInfo() {
+  (async () => {
+    showLoader();
+    try {
+      await window.gd.users.login(localStorage.get('auth'));
+    } catch (e) {
+      hideLoader();
+      await customAlert("Your password has changed. Please login again.")
+      loginAccount();
+      buildAccountInfo();
+      return
+    }
+    let user = await window.gd.users.login(localStorage.get('auth'));
+    hideLoader();
+    await customAlert("");
   })();
 }
  _buildHowToPlayPopup() {
