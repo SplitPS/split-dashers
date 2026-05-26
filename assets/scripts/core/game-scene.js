@@ -1371,7 +1371,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             } else if (event.key === "Enter") {
                 this._activeInput = null;
             } else if (event.key.length === 1) {
-                if (this._activeInput === 'title' && level.levelName.length < 20) {
+                if (this._activeInput === 'title') {
                     level.levelName += event.key;
                 } else if (this._activeInput === 'desc' && (level.description || "").length < 150) {
                     level.description = (level.description || "") + event.key;
