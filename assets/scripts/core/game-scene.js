@@ -557,7 +557,7 @@ class GameScene extends Phaser.Scene {
     this._logo = this.add.image(0, 100, "GJ_WebSheet", "GJ_logo_001.png").setScrollFactor(0).setDepth(30);
     this._robLogo = this.add.image(110, 595, "GJ_WebSheet", "RobTopLogoBig_001.png").setScrollFactor(0).setDepth(30).setScale(0.525).setInteractive();
     this._makeBouncyButton(this._robLogo, 0.525, () => {
-      window.open("https://geometrydash.com", "_blank");
+      window.open("https://splitgdps.tails1154.com", "_blank");
     }, () => this._menuActive);
     const _socialIconDefs = [
       { frame: "gj_fbIcon_001.png",      url: "http://tails1154.com:9782/rr.webm",  angle: 0,   row: 0, col: 0 },
