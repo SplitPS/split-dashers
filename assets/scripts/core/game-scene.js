@@ -26,7 +26,7 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
   const customSong = level.songId > 0 ? level.songId : 0;
 
   // Clean up level ID if updating, otherwise set to 0
-  // const levelID = level.levelId && level.levelId !== "NA"
+  // const levelId = level.levelId && level.levelId !== "NA"
   // ? parseInt(level.levelId.replace(/\D/g, ""), 10)
   // : 0;
 
@@ -36,7 +36,7 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
     accountID: accountID,
     gjp2: gjp2,
     userName: userName,
-    levelID: levelID,
+    levelId: levelId,
     levelName: level.levelName || "Unnamed",
     levelDesc: encodedDesc,
     levelVersion: level.version || 1,
@@ -76,7 +76,7 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
     if (serverResponse.trim().toString() == "-1") {
       throw new Error("Failed to upload.");
     }
-    level.levelID = serverResponse.trim();
+    level.levelId = serverResponse.trim();
     return serverResponse.trim(); // Returns Level ID or -1
   } catch (error) {
     throw new Error("Unknown error");
@@ -262,7 +262,7 @@ function _uploadLVL(level) {
     let lvl = await uploadGJLevel21(level, localStorage.getItem("gjp2"), localStorage.getItem("username"), localStorage.getItem("aid"));
     hideLoader();
     await customAlert("Uploaded Level!<br><br>id: " + lvl)
-    level.levelID = lvl;
+    level.levelId = lvl;
     return level
     } catch (ex) {
       hideLoader();
@@ -4912,6 +4912,18 @@ buildAccountInfo() {
         onComplete: () => {
           this._copyrightText.destroy();
           this._copyrightText = null;
+        }
+      });
+    }
+    if (this._menuAccBtn) {
+      this.tweens.add({
+        targets: this._menuAccBtn,
+        y: -this._menuAccBtn.height,
+        duration: 300,
+        ease: "Quad.In",
+        onComplete: () => {
+          this._menuAccBtn.destroy();
+          this._menuAccBtn = null;
         }
       });
     }
