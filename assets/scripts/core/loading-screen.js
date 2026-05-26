@@ -128,7 +128,9 @@ class BootScene extends Phaser.Scene {
       "tails1154 is charagd",
       "underscore underscore underscore underscore underscore underscore",
       "hello dragon guy",
-      "idk what to put here"
+      "idk what to put here",
+      "fridge",
+      "webtv"
     ];
     const sliderOriginX = cx - 105;
     const sliderOriginY = cy + 110;
