@@ -4234,9 +4234,9 @@ buildAccountInfo() {
         window.location.href = window.location.href; // "redirect"
       return
     }
-    await window.gd.users.login({username:localStorage.getItem('username'),password:localStorage.getItem('password')});
+    let user = await window.gd.users.login({username:localStorage.getItem('username'),password:localStorage.getItem('password')});
     hideLoader();
-    await customAlert("");
+    await customAlert(localStorage.getItem('username') + " stats\n\nstar coins: " + user.stats.coins.normal + "\nuser coins: " + user.stats.coins.user + "\n\ncreator points: " + user.stats.cp + "\n\ndemons: " + user.stats.demons + "\n\ndiamonds: " + user.stats.diamonds + "\n\nleaderboard rank: " + user.stats.rank + "\n\nstars: " + user.stats.stars);
   })();
 }
  _buildHowToPlayPopup() {
