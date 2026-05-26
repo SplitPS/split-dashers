@@ -4202,112 +4202,11 @@ _buildAccountPopup() {
 buildAccountInfo() {
   (async () => {
 
-    async function customAlert(message, title = 'Alert') {
-      await Swal.fire({
-        title: title,
-        text: message,
-        icon: 'info',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
-      });
-    }
-
-    window.gd = new GD({logLevel: 2, dbURL: "https://split.ps.fhgdps.com", corsURL: "https://tails1154.com:9995/"});
-
-    if (window.location.href.startsWith("https://")) {
-    }
-
-    if (window.location.href.startsWith("file://")) {
-      customAlert(title="Error",message="Sorry, you must host a local web server to use this program. File links won't work.")
-      throw new Error("File:// link detected.");
-    }
-    /**
-     * Enhanced replacement for prompt()
-     * @param {string} message - The placeholder or prompt message
-     * @param {string} defaultValue - Optional default value for the input field
-     * @returns {Promise<string|null>} The user input string, or null if cancelled
-     */
-    async function customPrompt(message, defaultValue = '') {
-      const { value: text, isDismissed } = await Swal.fire({
-        title: message,
-        input: 'text',
-        inputValue: defaultValue,
-        showCancelButton: false,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        inputValidator: (value) => {
-          // Optional: Remove this if you want to allow empty submissions
-          if (!value.trim()) {
-            return 'You need to enter something!';
-          }
-        }
-      });
-
-
-
-
-      if (isDismissed) {
-        return customPrompt(message, defaultValue); // Mimics native prompt() returning null on Cancel
-      }
-      return text;
-    }
-    async function customPassword(message, defaultValue = '') {
-      const { value: text, isDismissed } = await Swal.fire({
-        title: message,
-        input: 'password',
-        inputValue: defaultValue,
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        inputValidator: (value) => {
-          // Optional: Remove this if you want to allow empty submissions
-          if (!value.trim()) {
-            return 'You need to enter something!';
-          }
-        }
-      });
-
-
-
-
-      if (isDismissed) {
-        return customPassword(message, defaultValue)
-      }
-      return text;
-
-    }
-    /**
-     * Opens a blocking loading spinner modal.
-     * @param {string} title - The header text for the loader (Defaults to "Loading")
-     * @param {string} text - Optional sub-text/description below the spinner
-     */
-    function showLoader(title = "Loading", text = "Please wait...") {
-      // We return Swal.fire directly so it sets up the window overlay natively
-      Swal.fire({
-        title: title,
-        text: text,
-        allowOutsideClick: false, // Prevents user from clicking background to close it
-        allowEscapeKey: false,    // Prevents user from hitting Esc to close it
-        showConfirmButton: false, // Hides the OK button completely
-        didOpen: () => {
-          Swal.showLoading();    // Activates the built-in animated spinning wheel
-        }
-      });
-    }
-    /**
-     * Closes the currently active loading modal.
-     */
-    function hideLoader() {
-      Swal.hideLoading();
-      Swal.closeModal();
-      Swal.closePopup();
-      Swal.close();
-    }
     showLoader();
     try {
       await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password'));
     } catch (e) {
-      await hideLoader();
+      hideLoader();
       await customAlert("Your password has changed. Please login again.")
 
       // Wrap everything in an async IIFE
