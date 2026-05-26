@@ -4204,7 +4204,7 @@ buildAccountInfo() {
 
     showLoader();
     try {
-      await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password'));
+      await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password')});
     } catch (e) {
       hideLoader();
       await customAlert("Your password has changed. Please login again.")
