@@ -36,7 +36,7 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
     accountID: accountID,
     gjp2: gjp2,
     userName: userName,
-    levelId: levelId,
+    levelId: level.levelId,
     levelName: level.levelName || "Unnamed",
     levelDesc: encodedDesc,
     levelVersion: level.version || 1,
