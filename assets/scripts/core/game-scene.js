@@ -4206,11 +4206,11 @@ buildAccountInfo() {
     try {
       await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password')});
     } catch (e) {
+      console.warn(e);
       hideLoader();
       await customAlert("Your password has changed. Please login again.")
 
       // Wrap everything in an async IIFE
-      (async () => {
         window.username = await customPrompt("Enter your username");
         window.password = await customPassword("Enter your password");
         showLoader("Logging in", "Logging in");
@@ -4231,8 +4231,7 @@ buildAccountInfo() {
           this._accountPopup = false;
           return
         }
-      })();
-      buildAccountInfo();
+        window.location.href = window.location.href; // "redirect"
       return
     }
     await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password')});
