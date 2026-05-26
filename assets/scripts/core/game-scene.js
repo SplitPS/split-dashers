@@ -4162,29 +4162,6 @@ _buildSettingsPopup() {
       this._infoPopup = null;
     }
   }
-  loginAccount() {
-    // Wrap everything in an async IIFE
-    (async () => {
-      window.username = await customPrompt("Enter your username");
-      window.password = await customPassword("Enter your password");
-      showLoader("Logging in", "Logging in");
-      try {
-        let auth = await window.gd.users.login({username: window.username, password: window.password});
-        window._accountPopup = false;
-        localStorage.setItem('auth', {username: window.username, password: window.password});
-        window.username = null;
-        window.password = null;
-        localStorage.setItem('loggedIn', true);
-        auth = null;
-        hideLoader();
-      } catch (e) {
-        hideLoader();
-        await customAlert("Invalid credentials were provided or a unknown error occurred.");
-        this._accountPopup = false;
-        return
-      }
-    })();
-  }
 _buildAccountPopup() {
   this._accountPopup = true;
   if (localStorage.getItem('loggedIn') == 'true') {
@@ -4193,7 +4170,28 @@ _buildAccountPopup() {
     return
 
   }
-  loginAccount();
+
+  // Wrap everything in an async IIFE
+  (async () => {
+    window.username = await customPrompt("Enter your username");
+    window.password = await customPassword("Enter your password");
+    showLoader("Logging in", "Logging in");
+    try {
+      let auth = await window.gd.users.login({username: window.username, password: window.password});
+      window._accountPopup = false;
+      localStorage.setItem('auth', {username: window.username, password: window.password});
+      window.username = null;
+      window.password = null;
+      localStorage.setItem('loggedIn', true);
+      auth = null;
+      hideLoader();
+    } catch (e) {
+      hideLoader();
+      await customAlert("Invalid credentials were provided or a unknown error occurred.");
+      this._accountPopup = false;
+      return
+    }
+  })();
 }
 
 buildAccountInfo() {
@@ -4204,7 +4202,28 @@ buildAccountInfo() {
     } catch (e) {
       hideLoader();
       await customAlert("Your password has changed. Please login again.")
-      loginAccount();
+
+      // Wrap everything in an async IIFE
+      (async () => {
+        window.username = await customPrompt("Enter your username");
+        window.password = await customPassword("Enter your password");
+        showLoader("Logging in", "Logging in");
+        try {
+          let auth = await window.gd.users.login({username: window.username, password: window.password});
+          window._accountPopup = false;
+          localStorage.setItem('auth', {username: window.username, password: window.password});
+          window.username = null;
+          window.password = null;
+          localStorage.setItem('loggedIn', true);
+          auth = null;
+          hideLoader();
+        } catch (e) {
+          hideLoader();
+          await customAlert("Invalid credentials were provided or a unknown error occurred.");
+          this._accountPopup = false;
+          return
+        }
+      })();
       buildAccountInfo();
       return
     }
