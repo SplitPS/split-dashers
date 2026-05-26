@@ -4383,6 +4383,7 @@ _buildAccountPopup() {
     } catch (e) {
       hideLoader();
       await customAlert("Invalid credentials were provided or a unknown error occurred.");
+      console.warn(e);
       this._accountPopup = false;
       return
     }
