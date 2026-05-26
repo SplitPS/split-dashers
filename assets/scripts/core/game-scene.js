@@ -4236,7 +4236,7 @@ buildAccountInfo() {
     }
     let user = await window.gd.users.login({username:localStorage.getItem('username'),password:localStorage.getItem('password')});
     hideLoader();
-    await customAlert(localStorage.getItem('username') + " stats\n\nstar coins: " + user.stats.coins.normal + "\nuser coins: " + user.stats.coins.user + "\n\ncreator points: " + user.stats.cp + "\n\ndemons: " + user.stats.demons + "\n\ndiamonds: " + user.stats.diamonds + "\n\nleaderboard rank: " + user.stats.rank + "\n\nstars: " + user.stats.stars);
+    await customAlert(localStorage.getItem('username') + " stats<br><br>star coins: " + user.stats.coins.normal + "<br>user coins: " + user.stats.coins.user + "<br><br>creator points: " + user.stats.cp + "<br><br>demons: " + user.stats.demons + "<br><br>diamonds: " + user.stats.diamonds + "<br><br>leaderboard rank: " + user.stats.rank + "<br><br>stars: " + user.stats.stars);
   })();
 }
  _buildHowToPlayPopup() {
