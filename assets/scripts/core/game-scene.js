@@ -108,6 +108,54 @@ function hideLoader() {
   Swal.closePopup();
   Swal.close();
 }
+/**
+ * Spawns a clean confirmation modal.
+ * @param {string} message - The question or statement to confirm.
+ * @param {string} title - The header title of the modal.
+ * @returns {Promise<boolean>} True if confirmed, false if cancelled.
+ */
+async function customConfirm(message, title = "Are you sure?") {
+  const result = await Swal.fire({
+    title: title,
+    text: message,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'No',
+    confirmButtonColor: '#27ae60',
+    cancelButtonColor: '#d33'
+  });
+
+  // Returns true if they clicked 'Yes', otherwise returns false
+  return result.isConfirmed;
+}
+async function showAccountMenu() {
+  const { isConfirmed, isDenied, isDismissed } = await Swal.fire({
+    title: 'Account',
+    text: 'Select a option',
+    showCancelButton: true,
+    showDenyButton: true,
+    confirmButtonText: 'Logout',
+    denyButtonText: "idk",
+    cancelButtonText: 'and idk',
+    confirmButtonColor: '#27ae60',
+    denyButtonColor: '#e74c3c',
+    cancelButtonColor: '#888888'
+  });
+
+  // Handle the button routing
+  if (isConfirmed) {
+    if (await customConfirm("Do you want to logout? This will delete all local data!", "Logout?")) {
+      if (await customConfirm("THIS WILL DELETE ALL LOCAL DATA! Do you still want to logout?", "WARNING!!")) {
+        localStorage.clear();
+        await customAlert("Data has been deleted.");
+        window.location.href = window.location.href; // im sure theres a better way of doing this but shut up
+      }
+    }
+  } else if (isDenied) {
+  } else if (isDismissed) {
+  }
+}
 
 class PracticeMode {
   constructor() {
@@ -4105,7 +4153,7 @@ _buildSettingsPopup() {
 _buildAccountPopup() {
   this._accountPopup = true;
   if (localStorage.getItem('loggedIn') == 'true') {
-    customAlert("You are already logged in!");
+    showAccountMenu();
     this._accountPopup = false;
     return
 
@@ -7666,7 +7714,7 @@ _applyMirrorEffect() {
     };
 
     _makeSettingsBtn(_sColL, _sRow1Y, "Account",    _sBtnW2, true, () => { this._buildAccountPopup(); });
-    _makeSettingsBtn(_sColR, _sRow1Y, "How To Play", _sBtnW2, true, () => { this._buildHowToPlayPopup(); });
+    _makeSettingsBtn(_sColR, _sRow1Y, "How To Play", _sBtnW2, false, () => { this._buildHowToPlayPopup(); });
     _makeSettingsBtn(_sColL, _sRow2Y, "Options",    _sBtnW2, true,  () => { this._buildSettingsPopup(); });
     _makeSettingsBtn(_sColR, _sRow2Y, "Graphics",   _sBtnW2, false, null);
     _makeSettingsBtn(_sCol3L, _sRow3Y, "Rate",      _sBtnW3, false, null);
