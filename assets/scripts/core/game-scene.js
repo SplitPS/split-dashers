@@ -597,10 +597,10 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       this._buildInfoPopup();
     }, () => this._menuActive && !this._infoPopup);
     // Calculate your positions based on the game canvas dimensions
-    const xPos = 30; // A little bit of padding from the left edge
-    const yPos = this.cameras.main.height * 0.80; // 80% down from the top (which leaves 20% at the bottom)
+    const xPos = 50; // A little bit of padding from the left edge
+    const yPos = this.cameras.main.height * 0.60;
     if (localStorage.getItem("loggedIn") == "true") {
-    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "GJ_yourProfileTxt_001.png")
+    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "accountBtn_001.png")
     .setOrigin(0, 0.5) // Optional: Makes alignment much easier (see below)
     .setScrollFactor(0)
     .setDepth(30)
@@ -4182,6 +4182,7 @@ _buildAccountPopup() {
       window._accountPopup = false;
       localStorage.setItem('auth', {username: window.username, password: window.password});
       localStorage.setItem('username', window.username);
+      localStorage.setItem('password', window.password); // i fucking hate this
       window.username = null;
       window.password = null;
       localStorage.setItem('loggedIn', true);
@@ -4202,9 +4203,9 @@ buildAccountInfo() {
   (async () => {
     showLoader();
     try {
-      await window.gd.users.login(localStorage.get('auth'));
+      await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password'));
     } catch (e) {
-      hideLoader();
+      await hideLoader();
       await customAlert("Your password has changed. Please login again.")
 
       // Wrap everything in an async IIFE
@@ -4215,6 +4216,8 @@ buildAccountInfo() {
         try {
           let auth = await window.gd.users.login({username: window.username, password: window.password});
           window._accountPopup = false;
+          localStorage.setItem('username', window.username);
+          localStorage.setItem('password', window.password);
           localStorage.setItem('auth', {username: window.username, password: window.password});
           window.username = null;
           window.password = null;
@@ -4231,7 +4234,7 @@ buildAccountInfo() {
       buildAccountInfo();
       return
     }
-    let user = await window.gd.users.login(localStorage.get('auth'));
+    await window.gd.users.login({username:localStorage.get('username'),password:localStorage.get('password'));
     hideLoader();
     await customAlert("");
   })();
