@@ -128,21 +128,8 @@ async function customConfirm(message, title = "Are you sure?") {
   return result.isConfirmed;
 }
 async function showAccountMenu() {
-  const { isConfirmed, isDenied, isDismissed } = await Swal.fire({
-    title: 'Account',
-    text: 'Select a option',
-    showCancelButton: true,
-    showDenyButton: true,
-    confirmButtonText: 'Logout',
-    denyButtonText: "idk",
-    cancelButtonText: 'and idk',
-    confirmButtonColor: '#27ae60',
-    denyButtonColor: '#e74c3c',
-    cancelButtonColor: '#888888'
-  });
 
-  // Handle the button routing
-  if (isConfirmed) {
+  if (true) {
     if (await customConfirm("Do you want to logout? This will delete all local data!", "Logout?")) {
       if (await customConfirm("THIS WILL DELETE ALL LOCAL DATA! Do you still want to logout?", "WARNING!!")) {
         localStorage.clear();
@@ -150,8 +137,8 @@ async function showAccountMenu() {
         window.location.href = window.location.href; // im sure theres a better way of doing this but shut up
       }
     }
-  } else if (isDenied) {
-  } else if (isDismissed) {
+  } else if (false) {
+  } else if (false) {
   }
 }
 
@@ -7570,7 +7557,7 @@ _applyMirrorEffect() {
     this._endLayerInternal.add(this.add.image(containerX - _0x45540f, 352.5, "GJ_WebSheet", "getIt_001.png").setScale(1 / 1.5));
     const _0x34b1bd = [{
       key: "downloadApple_001",
-      url: "https://go.tails1154.com/downloadgdps"
+      url: "https://go.tails1154.com/gdpsdc"
     }, {
       key: "downloadSteam_001",
       url: "https://github.com/SplitPS/split-dashers"
