@@ -321,11 +321,11 @@ function _uploadLVL(level) {
 }
 if (window.location.href.startsWith("http://")) {
   if (window.location.href.startsWith("http://localhost:") == false) {
-  await customAlert("You are using HTTP. You can continue but you may encounter errors. Consider using HTTPS");
+  customAlert("You are using HTTP. You can continue but you may encounter errors. Consider using HTTPS");
   }
 }
 if (window.location.href.startsWith("file://")) {
-  await customAlert("Split Dashers cannot be used in file:// links. Host a local web server instead.");
+  customAlert("Split Dashers cannot be used in file:// links. Host a local web server instead.");
 }
 
 
