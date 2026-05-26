@@ -15,7 +15,7 @@ async function customAlert(message, title = 'Alert') {
   });
 }
 
-window.gdAPI = new GD({logLevel: 2, dbURL: "https://split.ps.fhgdps.com", corsURL: "http://tails1154.com:9998"});
+window.gd = new GD({logLevel: 2, dbURL: "https://split.ps.fhgdps.com", corsURL: "http://tails1154.com:9998/"});
 
 if (window.location.href.startsWith("https://")) {
   customAlert(title="Error",message="Sorry, You must use http for this program.")
@@ -47,31 +47,7 @@ if (window.location.href.startsWith("file://")) {
       }
     }
   });
-  /**
-   * Opens a blocking loading spinner modal.
-   * @param {string} title - The header text for the loader (Defaults to "Loading")
-   * @param {string} text - Optional sub-text/description below the spinner
-   */
-  async function showLoader(title = "Loading", text = "Please wait...") {
-    // We return Swal.fire directly so it sets up the window overlay natively
-    return Swal.fire({
-      title: title,
-      text: text,
-      allowOutsideClick: false, // Prevents user from clicking background to close it
-      allowEscapeKey: false,    // Prevents user from hitting Esc to close it
-      showConfirmButton: false, // Hides the OK button completely
-      didOpen: () => {
-        Swal.showLoading();    // Activates the built-in animated spinning wheel
-      }
-    });
-  }
 
-  /**
-   * Closes the currently active loading modal.
-   */
-  function hideLoader() {
-    Swal.close();
-  }
 
 
 
@@ -104,6 +80,33 @@ async function customPassword(message, defaultValue = '') {
   }
   return text;
 
+}
+/**
+ * Opens a blocking loading spinner modal.
+ * @param {string} title - The header text for the loader (Defaults to "Loading")
+ * @param {string} text - Optional sub-text/description below the spinner
+ */
+function showLoader(title = "Loading", text = "Please wait...") {
+  // We return Swal.fire directly so it sets up the window overlay natively
+  Swal.fire({
+    title: title,
+    text: text,
+    allowOutsideClick: false, // Prevents user from clicking background to close it
+    allowEscapeKey: false,    // Prevents user from hitting Esc to close it
+    showConfirmButton: false, // Hides the OK button completely
+    didOpen: () => {
+      Swal.showLoading();    // Activates the built-in animated spinning wheel
+    }
+  });
+}
+/**
+ * Closes the currently active loading modal.
+ */
+function hideLoader() {
+  Swal.hideLoading();
+  Swal.closeModal();
+  Swal.closePopup();
+  Swal.close();
 }
 
 class PracticeMode {
@@ -4100,14 +4103,33 @@ _buildSettingsPopup() {
     }
   }
 _buildAccountPopup() {
-  if (this._accountPopup) {
-    return;
-  }
   this._accountPopup = true;
+  if (localStorage.getItem('loggedIn') == 'true') {
+    customAlert("You are already logged in!");
+    this._accountPopup = false;
+    return
+
+  }
   // Wrap everything in an async IIFE
   (async () => {
     window.username = await customPrompt("Enter your username");
     window.password = await customPassword("Enter your password");
+    showLoader("Logging in", "Logging in");
+    try {
+    let auth = await window.gd.users.login({username: window.username, password: window.password});
+    window._accountPopup = false;
+    window.username = null;
+    window.password = null;
+    localStorage.setItem('loggedIn', true);
+    localStorage.setItem('auth', auth);
+    auth = null;
+    hideLoader();
+    } catch (e) {
+      hideLoader();
+      await customAlert("Invalid credentials were provided or a unknown error occurred.");
+      this._accountPopup = false;
+      return
+    }
 
 
   })();
