@@ -1,5 +1,5 @@
 window.ApiWrapper = class ApiWrapper {
-	static proxyurl = "http://tails1154.com:9998/?"
+	static proxyurl = "https://tails1154.com:9995/?"
 	static setProxy(string) {
 		this.proxyurl = string
 	}

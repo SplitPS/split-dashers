@@ -1578,6 +1578,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         }
       };
       const _doSearchInner = async (levelId) => {
+        showLoader("Searching");
         const PROXY_BASE = (window._gdProxyUrl || "").replace(/\/$/, "");
         if (!PROXY_BASE) return;
         const formBody = `levelID=${levelId}&secret=Wmfd2893gb7`;
@@ -1589,6 +1590,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
         const rawResponse = await res.text();
         if (!rawResponse || rawResponse === "-1" || !rawResponse.includes(":")) {
+          hideLoader();
           return;
         }
         const gdMap = {};
@@ -1607,6 +1609,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const songKey = isCustomSong ? `ng_song_${songIdRaw}` : window.allLevels[officialSongId][0];
         window.currentlevel[0] = songKey;
         window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
+        hideLoader();
         if (isCustomSong) {
           window._onlineSongBuffer = null; 
           window._onlineSongKey    = null;
@@ -1628,7 +1631,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
               if (songUrl) {
                 const audioCtx = this.game.sound.context;
                 if (audioCtx.state === "suspended") await audioCtx.resume();
-                const proxiedUrl = `${PROXY_BASE}/audio-proxy?url=${encodeURIComponent(songUrl)}`;
+                const proxiedUrl = `${PROXY_BASE}/${encodeURIComponent(songUrl)}`;
                 const audioRes = await fetch(proxiedUrl);
                 if (!audioRes.ok) throw new Error(`audio proxy returned ${audioRes.status}`);
                 const arrayBuf = await audioRes.arrayBuffer();
