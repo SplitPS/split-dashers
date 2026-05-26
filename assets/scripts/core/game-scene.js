@@ -5,11 +5,116 @@
  * @param {string} message - The text to display
  * @param {string} title - Optional header title
  */
+/**
+ * Uploads a level directly from a level object and authorization credentials.
+ * * @param {Object} level - The local level data object from your app.
+ * @param {string} gjp2 - The uploader's GJP2 hash.
+ * @param {string} userName - The uploader's username.
+ * @param {number|string} accountID - The uploader's account ID.
+ * @param {string} seed2 - The pre-calculated chk value for the level data.
+ */
+async function uploadGJLevel21(level, gjp2, userName, accountID) => {
+  const url = "https://tails1154.com:9995/https://split.ps.fhgdps.com/uploadGJLevel21.php";
+
+  // 1. Process and format data similar to your original XML mappings
+  const encodedDesc = btoa(level.description || "")
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_'); // Convert to URL-safe base64
+
+  // Handle song mapping logic from your original code
+  const officialSong = level.songId < 0 ? Math.abs(level.songId) : 0;
+  const customSong = level.songId > 0 ? level.songId : 0;
+
+  // Clean up level ID if updating, otherwise set to 0
+  const levelID = level.levelId && level.levelId !== "NA"
+  ? parseInt(level.levelId.replace(/\D/g, ""), 10)
+  : 0;
+
+  // 2. Map everything to the required PHP parameters
+  const payload = new URLSearchParams({
+    gameVersion: 22,
+    accountID: accountID,
+    gjp2: gjp2,
+    userName: userName,
+    levelID: levelID,
+    levelName: level.levelName || "Unnamed",
+    levelDesc: encodedDesc,
+    levelVersion: level.version || 1,
+    levelLength: level.levelLength || 0,
+    audioTrack: officialSong,
+    auto: 0,
+    password: 0, // Set to 0 (no copy) or password number if supported by your level object
+                                      original: 0,
+                                      twoPlayer: 0,
+                                      songID: customSong,
+                                      objects: level.objects || 0,
+                                      coins: 0,
+                                      requestedStars: 0,
+                                      unlisted: 0,
+                                      ldm: 0,
+                                      levelString: level.levelString || "", // Must already be gzip compressed + base64
+                                      secret: "Wmfd2893gb7"
+  });
+
+  // 3. Post the data to the server
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': ''
+      },
+      body: payload.toString()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Network response error: ${response.status}`);
+    }
+
+    const serverResponse = await response.text();
+    console.log("Upload response:", serverResponse);
+    if (serverResponse.trim().toString() == "-1") {
+      throw new Error("Failed to upload.");
+    }
+    return serverResponse.trim(); // Returns Level ID or -1
+  } catch (error) {
+    throw new Error("Unknown error");
+    console.error("Failed to upload level to server:", error);
+    return "-1";
+  }
+};
+
+async function generateGjp2(password = "", salt = "mI29fmAnxgTs") {
+  // 1. Combine the password and the salt
+  const combinedString = password + salt;
+
+  // 2. Encode the string into bytes (Uint8Array)
+  const msgUint8 = new TextEncoder().encode(combinedString);
+
+  // 3. Hash the message using SHA-1
+  const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);
+
+  // 4. Convert the ArrayBuffer to a hex string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+  return hashHex;
+}
+
 async function customAlert(message, title = 'Alert') {
   await Swal.fire({
     title: title,
     html: message,
     icon: 'info',
+    confirmButtonColor: '#3085d6',
+    confirmButtonText: 'OK'
+  });
+}
+async function showError(message, title = 'Alert') {
+  await Swal.fire({
+    title: title,
+    html: message,
+    icon: 'error',
     confirmButtonColor: '#3085d6',
     confirmButtonText: 'OK'
   });
@@ -141,6 +246,30 @@ async function showAccountMenu() {
   } else if (false) {
   }
 }
+
+
+
+
+// level, gjp2, userName, accountID
+
+
+
+function _uploadLVL(level) {
+  (async () => {
+    showLoader("Uploading...")
+    try {
+    let lvl = await uploadGJLevel21(level, localStorage.getItem("gjp2"), localStorage.getItem("username"), localStorage.getItem("aid"));
+    hideLoader();
+    await customAlert("Uploaded Level!<br><br>id: " + lvl)
+    } catch (ex) {
+      hideLoader();
+      await showError("Error uploading.<br><br>Technical info: " + ex.toString())
+      return
+    }
+  })();
+}
+
+
 
 class PracticeMode {
   constructor() {
@@ -1272,7 +1401,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const playBtn = this.add.image(centerX, btnY, "GJ_GameSheet03", "GJ_playBtn2_001.png").setInteractive().setFlipY(true).setAngle(90).setScale(1.1);
         this._makeBouncyButton(playBtn, 1.1, () => { cleanup(); this._startCreatedLevel(level, false); });
         const shareBtn = this.add.image(centerX + 220, btnY, "GJ_GameSheet03", "GJ_shareBtn_001.png").setInteractive().setFlipY(true).setAngle(90).setScale(1.1);
-        this._makeBouncyButton(shareBtn, 1.1, () => { this._exportGMD(level); });
+        this._makeBouncyButton(shareBtn, 1.1, () => { _uploadLVL(level); });
         const backBtn = this.add.image(50, 48, "GJ_GameSheet03", "GJ_arrow_03_001.png").setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive();
         this._makeBouncyButton(backBtn, 1, () => { cleanup(); this._openEditorMenu(); });
         const deleteBtn = this.add.image(sw - 50, 48, "GJ_GameSheet03", "GJ_deleteBtn_001.png").setInteractive().setFlipY(true).setAngle(90).setScale(0.8);
@@ -4180,7 +4309,9 @@ _buildAccountPopup() {
     try {
       let auth = await window.gd.users.login({username: window.username, password: window.password});
       window._accountPopup = false;
-      localStorage.setItem('auth', {username: window.username, password: window.password});
+      localStorage.setItem('gjp2', await generateGjp2(window.password));
+      localStorage.setItem('aid', auth.accountID);
+      localStorage.setItem('uid', auth.id);
       localStorage.setItem('username', window.username);
       localStorage.setItem('password', window.password); // i fucking hate this
       window.username = null;
@@ -4208,30 +4339,8 @@ buildAccountInfo() {
     } catch (e) {
       console.warn(e);
       hideLoader();
-      await customAlert("Your password has changed. Please login again.")
-
-      // Wrap everything in an async IIFE
-        window.username = await customPrompt("Enter your username");
-        window.password = await customPassword("Enter your password");
-        showLoader("Logging in", "Logging in");
-        try {
-          let auth = await window.gd.users.login({username: window.username, password: window.password});
-          window._accountPopup = false;
-          localStorage.setItem('username', window.username);
-          localStorage.setItem('password', window.password);
-          localStorage.setItem('auth', {username: window.username, password: window.password});
-          window.username = null;
-          window.password = null;
-          localStorage.setItem('loggedIn', true);
-          auth = null;
-          hideLoader();
-        } catch (e) {
-          hideLoader();
-          await customAlert("Invalid credentials were provided or a unknown error occurred.");
-          this._accountPopup = false;
-          return
-        }
-        window.location.href = window.location.href; // "redirect"
+      localStorage.setItem('loggedIn', false);
+      await customAlert("Your password has changed. Please login again. Your data will be preserved")
       return
     }
     let user = await window.gd.users.login({username:localStorage.getItem('username'),password:localStorage.getItem('password')});
