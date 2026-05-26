@@ -8,7 +8,7 @@
 async function customAlert(message, title = 'Alert') {
   await Swal.fire({
     title: title,
-    text: message,
+    html: message,
     icon: 'info',
     confirmButtonColor: '#3085d6',
     confirmButtonText: 'OK'
