@@ -301,10 +301,12 @@ function _uploadLVL(level) {
   (async () => {
     showLoader("Uploading...")
     try {
+    let name = level.levelName
     let lvl = await uploadGJLevel21(level, localStorage.getItem("gjp2"), localStorage.getItem("username"), localStorage.getItem("aid"));
     hideLoader();
     await customAlert("Uploaded Level!<br><br>id: " + lvl)
     level.levelId = lvl;
+    level.levelName = name;
     return level
     } catch (ex) {
       hideLoader();
