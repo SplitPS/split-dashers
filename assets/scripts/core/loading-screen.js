@@ -124,7 +124,11 @@ class BootScene extends Phaser.Scene {
     const cy = H / 2;
 
     const LOADING_MESSAGES = [
-      "i hate coding this"
+      "i hate coding this",
+      "tails1154 is charagd",
+      "underscore underscore underscore underscore underscore underscore",
+      "hello dragon guy",
+      "idk what to put here"
     ];
     const sliderOriginX = cx - 105;
     const sliderOriginY = cy + 110;

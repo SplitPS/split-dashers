@@ -4180,11 +4180,14 @@ _buildAccountPopup() {
       let auth = await window.gd.users.login({username: window.username, password: window.password});
       window._accountPopup = false;
       localStorage.setItem('auth', {username: window.username, password: window.password});
+      localStorage.setItem('username', window.username);
       window.username = null;
       window.password = null;
       localStorage.setItem('loggedIn', true);
       auth = null;
       hideLoader();
+      await customAlert("Logged in as " + localStorage.getItem('username'));
+      window.location.href = window.location.href; // ts sucks
     } catch (e) {
       hideLoader();
       await customAlert("Invalid credentials were provided or a unknown error occurred.");
