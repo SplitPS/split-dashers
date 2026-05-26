@@ -326,6 +326,7 @@ if (window.location.href.startsWith("http://")) {
 }
 if (window.location.href.startsWith("file://")) {
   customAlert("Split Dashers cannot be used in file:// links. Host a local web server instead.");
+  throw new Error("file:// cannot be used.");
 }
 
 
