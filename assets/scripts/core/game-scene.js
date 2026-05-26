@@ -13,7 +13,7 @@
  * @param {number|string} accountID - The uploader's account ID.
  * @param {string} seed2 - The pre-calculated chk value for the level data.
  */
-async function uploadGJLevel21(level, gjp2, userName, accountID) => {
+async function uploadGJLevel21(level, gjp2, userName, accountID) {
   const url = "https://tails1154.com:9995/https://split.ps.fhgdps.com/uploadGJLevel21.php";
 
   // 1. Process and format data similar to your original XML mappings
