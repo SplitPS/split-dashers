@@ -321,7 +321,7 @@ function _uploadLVL(level) {
 }
 if (window.location.href.startsWith("http://")) {
   if (window.location.href.startsWith("http://localhost:") == false) {
-  customAlert("You are using HTTP. You can continue but you may encounter errors. Consider using HTTPS");
+  customAlert("You are using HTTP. You can continue but you may encounter errors. Consider using HTTPS.<br><br>For instance, online functionality will not work properly.");
   }
 }
 if (window.location.href.startsWith("file://")) {
