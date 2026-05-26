@@ -13,6 +13,47 @@
  * @param {number|string} accountID - The uploader's account ID.
  * @param {string} seed2 - The pre-calculated chk value for the level data.
  */
+/**
+ * Generates the seed2 (chk) value for a Geometry Dash level string.
+ * @param {string} levelString - The gzip compressed, base64 encoded level data.
+ * @returns {Promise<string>} The encrypted seed2 hash.
+ */
+async function generateSeed2(levelString = "") {
+  if (!levelString) return "";
+
+  // 1. Replicate the character extraction loop
+  let sampleString = "";
+  const space = Math.floor(levelString.length / 50);
+
+  for (let i = 0; i < 50; i++) {
+    sampleString += levelString[space * i];
+  }
+
+  // 2. Append the salt
+  sampleString += "xI25fpAapCQg";
+
+  // 3. SHA-1 Hash the resulting string
+  const msgUint8 = new TextEncoder().encode(sampleString);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);
+
+  // Convert SHA-1 buffer to a standard hex string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const sha1Hex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // 4. XOR Encrypt the hex string with the key "41274"
+  const xorKey = "41274";
+  let seed2 = "";
+
+  for (let i = 0; i < sha1Hex.length; i++) {
+    // Perform bitwise XOR between the character code of the hash and the key (looping the key)
+    const charCode = sha1Hex.charCodeAt(i) ^ xorKey.charCodeAt(i % xorKey.length);
+    seed2 += String.fromCharCode(charCode);
+  }
+
+  // Geometry Dash servers usually expect the final XOR string to be URL-safe Base64 encoded
+  return btoa(seed2).replace(/\+/g, '-').replace(/\//g, '_');
+}
+
 async function uploadGJLevel21(level, gjp2, userName, accountID) {
   const url = "https://tails1154.com:9995/https://split.ps.fhgdps.com/uploadGJLevel21.php";
 
@@ -53,7 +94,8 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
                                       unlisted: 0,
                                       ldm: 0,
                                       levelString: level.levelString || "", // Must already be gzip compressed + base64
-                                      secret: "Wmfd2893gb7"
+                                      secret: "Wmfd2893gb7",
+                                      seed2: await generateSeed2(level.levelString);
   });
 
   // 3. Post the data to the server
@@ -79,8 +121,8 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
     level.levelId = serverResponse.trim();
     return serverResponse.trim(); // Returns Level ID or -1
   } catch (error) {
-    throw new Error("Unknown error");
-    console.error("Failed to upload level to server:", error);
+    throw error
+    // console.error("Failed to upload level to server:", error);
     return "-1";
   }
 };
