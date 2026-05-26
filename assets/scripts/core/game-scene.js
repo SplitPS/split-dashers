@@ -600,7 +600,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     const xPos = 30; // A little bit of padding from the left edge
     const yPos = this.cameras.main.height * 0.80; // 80% down from the top (which leaves 20% at the bottom)
     if (localStorage.getItem("loggedIn") == "true") {
-    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "GJ_viewProfileTxt_001.png")
+    this._menuAccBtn = this.add.image(xPos, yPos, "GJ_GameSheet03", "GJ_yourProfileTxt_001.png")
     .setOrigin(0, 0.5) // Optional: Makes alignment much easier (see below)
     .setScrollFactor(0)
     .setDepth(30)
