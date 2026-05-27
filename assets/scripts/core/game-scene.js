@@ -3293,6 +3293,10 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       if (this._versusResultObjs) {
         for (const o of this._versusResultObjs) o.destroy();
         this._versusResultObjs = null;
+        if (this._versusOpponentSprite) { this._versusOpponentSprite.destroy(); this._versusOpponentSprite = null; }
+        if (this._versusOpponentLabel) { this._versusOpponentLabel.destroy(); this._versusOpponentLabel = null; }
+        if (this._versusOpponentPct) { this._versusOpponentPct.destroy(); this._versusOpponentPct = null; }
+        window._versusOpponentInfo = null;
         this._cleanupVersus();
         this.scene.restart();
         return;
@@ -3344,6 +3348,8 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           }
         } else if (data && data.type === "state") {
           window._versusOpponent = data;
+        } else if (data && data.type === "info") {
+          window._versusOpponentInfo = data;
         }
       });
       window._versusConn.on("close", () => {
@@ -3352,6 +3358,9 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           Swal.fire({ title: "Disconnected", text: "Connection lost.", icon: "info", confirmButtonColor: "#3085d6" });
         }
       });
+      this._versusOpponentSprite = null;
+      this._versusOpponentLabel = null;
+      this._versusOpponentPct = null;
     }
     this._paused = false;
     this._pauseContainer = null;
@@ -8702,6 +8711,7 @@ _applyMirrorEffect() {
   }
   _checkAchievements() {
     const stats = this._getAchieveStats();
+    let notified = false;
     for (const ach of _ACHIEVEMENTS) {
       if (this._achievements[ach.id]) continue;
       let unlocked = false;
@@ -8732,7 +8742,10 @@ _applyMirrorEffect() {
         case "secret_early_death": unlocked = this._achieveEarlyDeath; break;
         case "secret_speedrun": unlocked = this._achieveSpeedrun; break;
       }
-      if (unlocked) this._unlockAchievement(ach.id);
+      if (unlocked) {
+        this._unlockAchievement(ach.id, !notified);
+        notified = true;
+      }
     }
   }
   _allOfficialsCompleted() {
@@ -8766,12 +8779,12 @@ _applyMirrorEffect() {
     }
     return best;
   }
-  _unlockAchievement(id) {
+  _unlockAchievement(id, notify = true) {
     if (this._achievements[id]) return;
     this._achievements[id] = Date.now();
     localStorage.setItem("gd_achievements", JSON.stringify(this._achievements));
     const ach = _ACHIEVEMENTS.find(a => a.id === id);
-    if (ach && !this._silentAchieveCheck) {
+    if (ach && notify && !this._silentAchieveCheck) {
       this._achieveNotifQueue.push(ach);
       this._showNextAchieveNotif();
     }
@@ -9099,6 +9112,7 @@ _applyMirrorEffect() {
     if (window._versusConn) { try { window._versusConn.close(); } catch(e) {} window._versusConn = null; }
     window._versusMode = false;
     window._versusOpponent = null;
+    window._versusOpponentInfo = null;
     window._versusResultShown = false;
   }
 
@@ -9107,6 +9121,7 @@ _applyMirrorEffect() {
     if (window._versusConn) { try { window._versusConn.close(); } catch(e) {} window._versusConn = null; }
     window._versusMode = false;
     window._versusOpponent = null;
+    window._versusOpponentInfo = null;
     window._versusResultShown = false;
   }
 
@@ -9134,6 +9149,8 @@ _applyMirrorEffect() {
           const id = data.replace("level:", "");
           statusTxt.setText("Starting level " + id + "...");
           this._beginVersusGame(id, tx, ty, cx);
+        } else if (data && data.type === "info") {
+          window._versusOpponentInfo = data;
         }
       });
       conn.on("close", () => {
@@ -9141,6 +9158,14 @@ _applyMirrorEffect() {
           Swal.fire({ title: "Disconnected", text: "Opponent left the game.", icon: "info", confirmButtonColor: "#3085d6" });
           window._versusMode = false;
         }
+      });
+      conn.send({
+        type: "info",
+        username: localStorage.getItem("username") || "Unknown",
+        accountID: localStorage.getItem("aid") || "0",
+        cubeIcon: localStorage.getItem("iconCurrentPlayer") || "player_01",
+        cubeColor: localStorage.getItem("iconMainColor") || "#ffffff",
+        cubeColor2: localStorage.getItem("iconSecondaryColor") || "#ffffff"
       });
       statusTxt.setText("Connected! Enter level ID:");
       this._showVersusLevelInput(tx, ty, cx, true);
@@ -9168,12 +9193,22 @@ _applyMirrorEffect() {
           joinBtn.setVisible(false); joinLbl.setVisible(false);
           orTxt.setVisible(false);
           statusTxt.setText("Connected! Waiting for host...");
+          conn.send({
+            type: "info",
+            username: localStorage.getItem("username") || "Unknown",
+            accountID: localStorage.getItem("aid") || "0",
+            cubeIcon: localStorage.getItem("iconCurrentPlayer") || "player_01",
+            cubeColor: localStorage.getItem("iconMainColor") || "#ffffff",
+            cubeColor2: localStorage.getItem("iconSecondaryColor") || "#ffffff"
+          });
         });
         conn.on("data", (data) => {
           if (typeof data === "string" && data.startsWith("level:")) {
             const id = data.replace("level:", "");
             statusTxt.setText("Starting level " + id + "...");
             this._beginVersusGame(id, tx, ty, cx);
+          } else if (data && data.type === "info") {
+            window._versusOpponentInfo = data;
           }
         });
         conn.on("close", () => {
@@ -9208,6 +9243,7 @@ _applyMirrorEffect() {
     this._versusPopup = false;
     window._versusMode = true;
     window._versusOpponent = null;
+    window._versusOpponentInfo = window._versusOpponentInfo || null;
     window._versusResultShown = false;
     this._playOnlineLevel(parseInt(levelId));
   }
@@ -9230,13 +9266,15 @@ _applyMirrorEffect() {
       this._showVersusResult(true);
       return;
     }
+    const pct = Math.min(100, Math.max(0, ((this._playerWorldX || 0) / (this._level.endXPos || 1)) * 100));
     window._versusConn.send({
       type: "state",
       x: this._playerWorldX || 0,
       y: this._state ? this._state.y : 0,
       vy: this._state ? this._state.yVelocity : 0,
       rot: this._player ? this._player._shipSpriteLayer?.sprite?.rotation || 0 : 0,
-      dead: this._state ? this._state.isDead : false
+      dead: this._state ? this._state.isDead : false,
+      percent: pct
     });
     if (window._versusOpponent && !window._versusResultShown) {
       this._renderVersusOpponent();
@@ -9245,21 +9283,40 @@ _applyMirrorEffect() {
 
   _renderVersusOpponent() {
     const opp = window._versusOpponent;
+    const info = window._versusOpponentInfo;
     if (!opp) return;
     const sh = screenHeight;
     const screenX = opp.x - this._cameraX;
     const screenY = sh - opp.y;
 
     if (!this._versusOpponentSprite || this._versusOpponentSprite._destroyed) {
-      this._versusOpponentSprite = this.add.rectangle(screenX, screenY, 20, 30, 0xff4444, 0.9).setDepth(50).setScrollFactor(0);
-      this._versusOpponentSprite.setOrigin(0.5, 1);
+      const cubeFrame = (info && info.cubeIcon ? info.cubeIcon : "player_01") + "_001.png";
+      const atlas = "GJ_GameSheetIcons";
+      if (this.textures.get(atlas).has(cubeFrame)) {
+        this._versusOpponentSprite = this.add.image(screenX, screenY, atlas, cubeFrame).setDepth(50).setScrollFactor(0).setOrigin(0.5, 1).setScale(1.2);
+      } else {
+        this._versusOpponentSprite = this.add.rectangle(screenX, screenY, 20, 30, 0x00ff00, 0.9).setDepth(50).setScrollFactor(0).setOrigin(0.5, 1);
+      }
+      if (info && info.cubeColor) {
+        const parsed = parseInt(String(info.cubeColor).replace("#", ""), 16);
+        if (!isNaN(parsed)) this._versusOpponentSprite.setTint(parsed);
+      }
+
+      const nameStr = (info && info.username) || "Opponent";
+      this._versusOpponentLabel = this.add.bitmapText(screenX, screenY - 40, "goldFont", nameStr, 14).setOrigin(0.5).setDepth(50).setScrollFactor(0);
+      this._versusOpponentPct = this.add.bitmapText(screenX, screenY - 20, "goldFont", "0%", 12).setOrigin(0.5).setDepth(50).setScrollFactor(0);
     } else {
       this._versusOpponentSprite.setPosition(screenX, screenY);
-    }
-    if (opp.dead) {
-      this._versusOpponentSprite.setAlpha(0.3);
-    } else {
-      this._versusOpponentSprite.setAlpha(1);
+      this._versusOpponentSprite.setAlpha(opp.dead ? 0.3 : 1);
+      if (this._versusOpponentLabel) {
+        this._versusOpponentLabel.setPosition(screenX, screenY - 40);
+        this._versusOpponentLabel.setAlpha(opp.dead ? 0.3 : 1);
+      }
+      if (this._versusOpponentPct) {
+        this._versusOpponentPct.setPosition(screenX, screenY - 20);
+        this._versusOpponentPct.setText(Math.floor(opp.percent || 0) + "%");
+        this._versusOpponentPct.setAlpha(opp.dead ? 0.3 : 1);
+      }
     }
   }
   _showStatsScreen() {
