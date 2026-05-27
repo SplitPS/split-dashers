@@ -336,6 +336,29 @@ class PracticeMode {
     this.checkpoints = [];
     this.practiceMode = false;
     this.checkpointSprites = [];
+    this._autoCheckpointTimer = 0;
+    this._lastAutoCheckpointX = -Infinity;
+  }
+  resetAutoCheckpoint() {
+    this._autoCheckpointTimer = 0;
+    this._lastAutoCheckpointX = -Infinity;
+  }
+  updateAutoCheckpoint(deltaTime, playerState, playerWorldX, cameraX, scene) {
+    if (!this.practiceMode) return;
+    if (playerState.isDead) {
+      this._autoCheckpointTimer = 0;
+      return;
+    }
+    if (playerState.onGround || playerState.onCeiling) {
+      this._autoCheckpointTimer += deltaTime;
+      if (this._autoCheckpointTimer >= 100 && Math.abs(playerWorldX - this._lastAutoCheckpointX) > 60) {
+        this.saveCheckpoint(playerState, playerWorldX, cameraX, scene);
+        this._lastAutoCheckpointX = playerWorldX;
+        this._autoCheckpointTimer = 0;
+      }
+    } else {
+      this._autoCheckpointTimer = 0;
+    }
   }
   togglePracticeMode() {
     this.practiceMode = !this.practiceMode;
@@ -395,6 +418,8 @@ class PracticeMode {
       timestamp: Date.now()
     };
     this.checkpoints.push(checkpoint);
+    this._lastAutoCheckpointX = playerWorldX;
+    this._autoCheckpointTimer = 0;
     const checkpointSprite = scene.add.image(playerWorldX, b(playerState.y), "GJ_GameSheet02", "checkpoint_01_001.png")
       .setOrigin(0.5, 0.5)
       .setScrollFactor(1)
@@ -425,6 +450,7 @@ class PracticeMode {
       }
     }
     this.checkpointSprites = [];
+    this.resetAutoCheckpoint();
   }
   loadLastCheckpoint() {
     if (this.checkpoints.length > 0) {
@@ -5617,6 +5643,7 @@ buildAccountInfo() {
       this._restartLevel();
       return;
     }
+    this._practicedMode.resetAutoCheckpoint();
     this._deathTimer = 0;
     this._deathSoundPlayed = false;
     this._newBestShown = false;
@@ -6258,6 +6285,7 @@ if (!this._state.isFlying && !this._state.isWave && !this._state.isUfo) {
     this._state.lastY = initialY;
     this._state.ignorePortals = false;
     this._state2.ignorePortals = false;
+    this._practicedMode.updateAutoCheckpoint(deltaTime, this._state, this._playerWorldX, this._cameraX, this);
     if (!this._endCameraOverride) {
       const cameraOffsetX = this._playerWorldX - centerX;
       if (this._level.endXPos > 0) {
