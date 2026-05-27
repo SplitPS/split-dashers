@@ -18,6 +18,7 @@
  * @param {string} levelString - The gzip compressed, base64 encoded level data.
  * @returns {Promise<string>} The encrypted seed2 hash.
  */
+window._gdProxyUrl = "https://tails1154.com:9995/https://split.ps.fhgdps.com";
 async function generateSeed2(levelString = "") {
   if (!levelString) return "";
 
