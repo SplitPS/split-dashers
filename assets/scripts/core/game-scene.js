@@ -946,6 +946,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const isSearchButton  = frame === "GJ_searchBtn_001.png";
         const isFeaturedButton = frame === "GJ_featuredBtn_001.png";
         const isEditorButton = frame === "GJ_createBtn_001.png"; 
+        const isDailyButton = frame === "GJ_dailyBtn_001.png";
         if (isSearchButton) {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
@@ -964,6 +965,33 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             this._closeCreatorMenu(true);
             this._openEditorMenu();
           }, () => true);
+        } else if (isDailyButton) {
+          btn.setInteractive();
+          this._makeBouncyButton(btn, btnScale, () => {
+            this._closeCreatorMenu(true);
+            (async () => {
+            showLoader("One moment...");// 1. Convert your data object into a URL-encoded string
+            let payload = new URLSearchParams({
+              "weekly": "0"
+            });
+
+            // 2. Pass the URL and a single options object to fetch
+            let f = await fetch("https://tails1154.com:9995/https://split.ps.fhgdps.com/getGJDailyLevel.php", {
+              method: "POST",
+              headers: {
+                "User-Agent": "",
+                "Content-Type": "application/x-www-form-urlencoded" // Essential for .php endpoints reading POST data
+              },
+              body: payload.toString()
+            });
+
+            let txt = await f.text();
+            let id = txt.split("|")[0] // yo splitgdps reference
+            hideLoader();
+            await _doSearchInner(id);
+            })();
+          })
+        }
         } else {
           btn.setTint(0x666666);
         }
