@@ -91,7 +91,7 @@ async function uploadGJLevel21(level, gjp2, userName, accountID) {
                                       songID: customSong,
                                       objects: level.objects || 0,
                                       coins: 0,
-                                      requestedStars: 0,
+                                       requestedStars: level.requestedStars || 0,
                                       unlisted: 0,
                                       ldm: 0,
                                       levelString: level.levelString || "", // Must already be gzip compressed + base64
@@ -307,6 +307,19 @@ function _uploadLVL(level) {
     if (level.status !== "Verified") {
       await showError("You must beat your level before uploading it.");
       return
+    }
+    const { value: starsReq } = await Swal.fire({
+      title: "Request star rating (0-10)",
+      text: "Leave empty or cancel for no rating request",
+      input: "number",
+      inputAttributes: { min: 0, max: 10, step: 1 },
+      showCancelButton: true,
+      confirmButtonText: "Set",
+      cancelButtonText: "Skip"
+    });
+    if (starsReq && starsReq !== "") {
+      const val = parseInt(starsReq);
+      if (!isNaN(val) && val >= 0 && val <= 10) level.requestedStars = val;
     }
     showLoader("Uploading...")
     try {
@@ -797,6 +810,8 @@ class GameScene extends Phaser.Scene {
     window._completedLevels = parseInt(localStorage.getItem("gd_completedLevels") || "0", 10);
     this._initAchievements();
     window._checkAchievements = () => this._checkAchievements();
+    this._checkAchievements();
+    this._silentAchieveCheck = false;
     this._achieveEarlyDeath = false;
     this._achieveSpeedrun = false;
     this._startTime = null;
@@ -1946,7 +1961,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       
       const innerBtn2 = this.add.image(innerBtnX + 137, innerBtnY, "GJ_GameSheet03", "GJ_longBtn05_001.png")
         .setScrollFactor(0).setDepth(105).setOrigin(0.5, 0.5).setInteractive();
-      this._makeBouncyButton(innerBtn2, 1, () => {});
+      this._makeBouncyButton(innerBtn2, 1, () => { _doSearchUser(); });
       const innerBtn1 = this.add.image(innerBtnX + 47, innerBtnY, "GJ_GameSheet03", "GJ_longBtn06_001.png")
         .setScrollFactor(0).setDepth(105).setOrigin(0.5, 0.5).setInteractive();
       this._makeBouncyButton(innerBtn1, 1, () => {  _doSearch(); });
@@ -2109,6 +2124,37 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           });
         }
       };
+      const _showUserResults = (users) => {
+        resultsBg.clear();
+        if (!users || users.length === 0) return;
+        resultsBg.fillStyle(panelColor, panelAlpha);
+        resultsBg.fillRoundedRect(panelLeft, qsPanelY, panelW, qsPanelH, panelRadius);
+        resultsContainer.removeAll(true);
+        const rowH = 68;
+        const maxVisible = Math.floor(qsPanelH / rowH);
+        const count = Math.min(users.length, maxVisible);
+        for (let i = 0; i < count; i++) {
+          const u = users[i];
+          const iy = qsPanelY + 4 + i * rowH;
+          const bg = this.add.rectangle(panelLeft + panelW / 2, iy + rowH / 2, panelW - 8, rowH - 2, i % 2 === 0 ? 0x1a3a6a : 0x15305a, 0.9).setOrigin(0.5);
+          resultsContainer.add(bg);
+          const iconFrame = `player_${String(u.icon).padStart(2, "0")}_001.png`;
+          const iconImg = this.add.image(panelLeft + 30, iy + rowH / 2, "GJ_GameSheetIcons", iconFrame).setScale(0.7).setVisible(this.textures.get("GJ_GameSheetIcons").has(iconFrame));
+          resultsContainer.add(iconImg);
+          const name = this.add.bitmapText(panelLeft + 55, iy + 8, "goldFont", u.username, 20).setOrigin(0, 0);
+          resultsContainer.add(name);
+          const stats = this.add.bitmapText(panelLeft + 55, iy + 34, "goldFont", `\u2605${u.stars}  \u2620${u.demons}  \u2666${u.coins}  CP:${u.cp}`, 14).setOrigin(0, 0);
+          resultsContainer.add(stats);
+          const viewBtn = this.add.image(panelRight - 24, iy + rowH / 2, "GJ_GameSheet03", "GJ_profileButton_001.png").setScale(0.6).setInteractive();
+          resultsContainer.add(viewBtn);
+          this._makeBouncyButton(viewBtn, 0.6, () => {
+            htmlInput.remove();
+            window.removeEventListener("resize", _repositionInput);
+            this._closeSearchMenu(true);
+            this._showProfile(u.accountId, u.username);
+          });
+        }
+      };
 
       const _doSearchByName = async (query) => {
         const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
@@ -2172,6 +2218,52 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         } else {
           showLoader("Searching...");
           await _doSearchByName(raw);
+        }
+        _loading = false;
+      };
+      const _doSearchUser = async () => {
+        if (_loading) return;
+        const raw = htmlInput.value.trim();
+        if (!raw) return;
+        _loading = true;
+        showLoader("Searching for user...");
+        try {
+          const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+          if (!PROXY) { hideLoader(); _loading = false; return; }
+          const body = `str=${encodeURIComponent(raw)}&secret=Wmfd2893gb7`;
+          const res = await fetch(`${PROXY}/getGJUsers20.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body
+          });
+          if (!res.ok) { hideLoader(); _loading = false; return; }
+          const text = await res.text();
+          hideLoader();
+          if (!text || text === "-1" || text === "-2") { _showUserResults([]); _loading = false; return; }
+          const parts = text.split("#");
+          const userData = parts[0] || "";
+          const meta = (parts[1] || "").split(":");
+          const m = {};
+          const p = userData.split(":");
+          for (let i = 0; i + 1 < p.length; i += 2) m[p[i]] = p[i + 1];
+          const users = [{
+            accountId: m["16"] || "",
+            userId: m["2"] || "",
+            username: m["1"] || raw,
+            stars: m["3"] || "0",
+            demons: m["4"] || "0",
+            coins: m["13"] || "0",
+            userCoins: m["17"] || "0",
+            cp: m["8"] || "0",
+            icon: m["9"] || "1",
+            color1: m["10"] || "0",
+            color2: m["11"] || "0",
+            iconType: m["14"] || "0",
+            special: m["15"] || "0",
+          }];
+          _showUserResults(users);
+        } catch (e) {
+          hideLoader();
         }
         _loading = false;
       };
@@ -8555,6 +8647,7 @@ _applyMirrorEffect() {
     this._achievements = raw ? JSON.parse(raw) : {};
     this._achieveNotifQueue = [];
     this._achieveShowingNotif = false;
+    this._silentAchieveCheck = true;
   }
   _getAchieveStats() {
     const lvls = JSON.parse(localStorage.getItem("created_levels") || "[]");
@@ -8639,7 +8732,7 @@ _applyMirrorEffect() {
     this._achievements[id] = Date.now();
     localStorage.setItem("gd_achievements", JSON.stringify(this._achievements));
     const ach = _ACHIEVEMENTS.find(a => a.id === id);
-    if (ach) {
+    if (ach && !this._silentAchieveCheck) {
       this._achieveNotifQueue.push(ach);
       this._showNextAchieveNotif();
     }
@@ -9878,5 +9971,356 @@ _applyMirrorEffect() {
       alpha: 0,
       duration: 500
     });
+  }
+  _showProfile(accountId, username) {
+    if (this._profileOverlay) return;
+    (async () => {
+      showLoader("Loading profile...");
+      try {
+        const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+        const body = `targetAccountID=${accountId}&secret=Wmfd2893gb7`;
+        const res = await fetch(`${PROXY}/getGJUserInfo20.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        if (!res.ok) { hideLoader(); return; }
+        const text = await res.text();
+        hideLoader();
+        if (!text || text === "-1") { return; }
+        const m = {};
+        const p = text.split(":");
+        for (let i = 0; i + 1 < p.length; i += 2) m[p[i]] = p[i + 1];
+        const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+        const fadeIn = this.add.graphics().setScrollFactor(0).setDepth(200);
+        fadeIn.fillStyle(0x000000, 1);
+        fadeIn.fillRect(0, 0, sw, sh);
+        this.tweens.add({ targets: fadeIn, alpha: 0, duration: 300, ease: "Linear", onComplete: () => fadeIn.destroy() });
+        const overlay = this.add.graphics().setScrollFactor(0).setDepth(100);
+        for (let gi = 0; gi < 80; gi++) {
+          const t = gi / 79;
+          const r = Math.round(0x00 + (0x01 - 0x00) * t);
+          const g = Math.round(0x2c + (0x1a - 0x2c) * t);
+          const b = Math.round(0x71 + (0x3a - 0x71) * t);
+          overlay.fillStyle((r << 16) | (g << 8) | b, 1);
+          overlay.fillRect(0, Math.floor(gi * sh / 80), sw, Math.ceil(sh / 80) + 1);
+        }
+        const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(101).setInteractive();
+        blocker.on("pointerdown", () => {});
+        const container = this.add.container(0, 0).setScrollFactor(0).setDepth(150);
+        const nameTxt = this.add.bitmapText(cx, 60, "goldFont", m["1"] || username, 36).setOrigin(0.5).setDepth(152);
+        const cubeFrame = `player_${String(parseInt(m["21"] || "1")).padStart(2, "0")}_001.png`;
+        const cubeImg = this.add.image(cx - 170, 180, "GJ_GameSheetIcons", cubeFrame).setScale(2).setDepth(152);
+        if (!this.textures.get("GJ_GameSheetIcons").has(cubeFrame)) cubeImg.setVisible(false);
+        const statsY = 180;
+        const lines = [
+          `Stars: ${m["3"] || "0"}`,
+          `Demons: ${m["4"] || "0"}`,
+          `Coins: ${m["13"] || "0"}  User Coins: ${m["17"] || "0"}`,
+          `Diamonds: ${m["46"] || "0"}`,
+          `Creator Points: ${m["8"] || "0"}`,
+          `Rank: #${m["30"] || "N/A"}`,
+        ];
+        const statTexts = [];
+        const statStartY = statsY;
+        const statSpacing = 30;
+        for (let i = 0; i < lines.length; i++) {
+          const st = this.add.bitmapText(cx - 20, statStartY + i * statSpacing, "bigFont", lines[i], 18).setOrigin(0, 0.5).setDepth(152);
+          statTexts.push(st);
+        }
+        container.add([nameTxt, cubeImg, ...statTexts]);
+        const socialY = sh - 140;
+        const socials = [];
+        if (m["20"]) {
+          const yt = this.add.image(cx - 120, socialY, "GJ_GameSheet03", "gj_ytIcon_001.png").setScale(0.6).setDepth(152).setInteractive();
+          const ytTxt = this.add.bitmapText(cx - 80, socialY, "bigFont", m["20"], 14).setOrigin(0, 0.5).setDepth(152);
+          yt.on("pointerdown", () => window.open("https://youtube.com/@" + m["20"], "_blank"));
+          socials.push(yt, ytTxt);
+        }
+        if (m["44"]) {
+          const tw = this.add.image(cx + 80, socialY, "GJ_GameSheet03", "gj_twIcon_001.png").setScale(0.6).setDepth(152).setInteractive();
+          const twTxt = this.add.bitmapText(cx + 120, socialY, "bigFont", m["44"], 14).setOrigin(0, 0.5).setDepth(152);
+          tw.on("pointerdown", () => window.open("https://twitter.com/" + m["44"], "_blank"));
+          socials.push(tw, twTxt);
+        }
+        if (m["45"]) {
+          const ttv = this.add.image(cx + 250, socialY, "GJ_GameSheet03", "gj_twitchIcon_001.png").setScale(0.6).setDepth(152).setInteractive();
+          const ttvTxt = this.add.bitmapText(cx + 290, socialY, "bigFont", m["45"], 14).setOrigin(0, 0.5).setDepth(152);
+          ttv.on("pointerdown", () => window.open("https://twitch.tv/" + m["45"], "_blank"));
+          socials.push(ttv, ttvTxt);
+        }
+        container.add(socials);
+        const commentsBtn = this.add.image(cx - 150, sh - 70, "GJ_GameSheet03", "GJ_chatBtn_02_001.png").setScale(0.7).setDepth(152).setInteractive();
+        const commentsTxt = this.add.bitmapText(cx - 80, sh - 70, "bigFont", "Profile Comments", 18).setOrigin(0, 0.5).setDepth(152);
+        this._makeBouncyButton(commentsBtn, 0.7, () => {
+          blocker.removeInteractive();
+          container.destroy();
+          overlay.destroy();
+          blocker.destroy();
+          this._profileOverlay = null;
+          this._showProfileComments(accountId, m["1"] || username);
+        });
+        container.add([commentsBtn, commentsTxt]);
+        const backBtn = this.add.image(50, 48, "GJ_GameSheet03", "GJ_arrow_03_001.png").setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive().setDepth(152);
+        this._makeBouncyButton(backBtn, 1, () => {
+          blocker.removeInteractive();
+          container.destroy();
+          overlay.destroy();
+          blocker.destroy();
+          this._profileOverlay = null;
+        });
+        this._profileOverlay = { overlay, blocker, container };
+      } catch (e) {
+        hideLoader();
+      }
+    })();
+  }
+  _showProfileComments(accountId, username) {
+    if (this._profileOverlay) return;
+    (async () => {
+      const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+      const fadeIn = this.add.graphics().setScrollFactor(0).setDepth(200);
+      fadeIn.fillStyle(0x000000, 1);
+      fadeIn.fillRect(0, 0, sw, sh);
+      this.tweens.add({ targets: fadeIn, alpha: 0, duration: 300, ease: "Linear", onComplete: () => fadeIn.destroy() });
+      const overlay = this.add.graphics().setScrollFactor(0).setDepth(100);
+      for (let gi = 0; gi < 80; gi++) {
+        const t = gi / 79;
+        const r = Math.round(0x00 + (0x01 - 0x00) * t);
+        const g = Math.round(0x2c + (0x1a - 0x2c) * t);
+        const b = Math.round(0x71 + (0x3a - 0x71) * t);
+        overlay.fillStyle((r << 16) | (g << 8) | b, 1);
+        overlay.fillRect(0, Math.floor(gi * sh / 80), sw, Math.ceil(sh / 80) + 1);
+      }
+      const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(101).setInteractive();
+      const container = this.add.container(0, 0).setScrollFactor(0).setDepth(150);
+      const title = this.add.bitmapText(cx, 50, "goldFont", `${username}'s Comments`, 28).setOrigin(0.5).setDepth(152);
+      container.add(title);
+      let currentPage = 0;
+      let commentObjs = [];
+      const renderComments = async (page) => {
+        showLoader("Loading comments...");
+        try {
+          const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+          const body = `accountID=${accountId}&page=${page}&secret=Wmfd2893gb7`;
+          const res = await fetch(`${PROXY}/getGJAccountComments20.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body
+          });
+          const text = await res.text();
+          hideLoader();
+          commentObjs = [];
+          if (text && text !== "-1") {
+            const sections = text.split("#");
+            const commentStrs = (sections[0] || "").split("|").filter(Boolean);
+            for (const cs of commentStrs) {
+              const cm = {};
+              const parts = cs.split("~");
+              for (let i = 0; i + 1 < parts.length; i += 2) cm[parts[i]] = parts[i + 1];
+              if (cm["2"]) {
+                const decoded = (() => {
+                  try { return atob(cm["2"].replace(/-/g, "+").replace(/_/g, "/")); } catch(e) { return cm["2"]; }
+                })();
+                commentObjs.push({ text: decoded, age: cm["9"] || "", likes: cm["4"] || "0", msgId: cm["6"] || "" });
+              }
+            }
+          }
+        } catch (e) { hideLoader(); }
+        _renderCurrent();
+      };
+      const commentContainer = this.add.container(0, 0).setDepth(152);
+      const maskShape = this.add.rectangle(cx, sh / 2 + 30, sw - 80, sh - 200, 0).setVisible(false);
+      const mask = maskShape.createGeometryMask();
+      commentContainer.setMask(mask);
+      container.add([maskShape, commentContainer]);
+      const _renderCurrent = () => {
+        commentContainer.removeAll(true);
+        let y = 0;
+        for (const c of commentObjs) {
+          const bg = this.add.rectangle(0, y + 15, sw - 100, 60, 0x000000, 0.4).setOrigin(0.5);
+          bg.setStrokeStyle(1, 0x444444);
+          const txt = this.add.text(-(sw - 100) / 2 + 10, y + 5, c.text, { fontSize: "15px", fontFamily: "Arial", color: "#ffffff", wordWrap: { width: sw - 140 } }).setOrigin(0, 0);
+          const meta = this.add.bitmapText(-(sw - 100) / 2 + 10, y + 40, "goldFont", `${c.age}  \u2661${c.likes}`, 12).setOrigin(0, 0);
+          commentContainer.add([bg, txt, meta]);
+          y += 68;
+        }
+        if (commentObjs.length === 0) {
+          const empty = this.add.bitmapText(0, 0, "bigFont", "No comments yet.", 20).setOrigin(0.5);
+          commentContainer.add(empty);
+        }
+      };
+      await renderComments(0);
+      const postBtn = this.add.image(cx + 220, sh - 70, "GJ_GameSheet03", "GJ_chatBtn_001.png").setScale(0.65).setDepth(152).setInteractive();
+      const postLabel = this.add.bitmapText(cx + 270, sh - 70, "bigFont", "Post Comment", 16).setOrigin(0, 0.5).setDepth(152);
+      if (localStorage.getItem("loggedIn") !== "true") { postBtn.setAlpha(0.3); postLabel.setAlpha(0.3); }
+      else {
+        this._makeBouncyButton(postBtn, 0.65, async () => {
+          const comment = await customPrompt("Enter your comment (max 140 chars)");
+          if (!comment) return;
+          showLoader("Posting...");
+          try {
+            const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+            const enc = btoa(unescape(encodeURIComponent(comment))).replace(/\+/g, "-").replace(/\//g, "_");
+            const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&userName=${encodeURIComponent(localStorage.getItem("username"))}&comment=${enc}&secret=Wmfd2893gb7`;
+            const res = await fetch(`${PROXY}/uploadGJAccComment20.php`, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body
+            });
+            const r = await res.text();
+            hideLoader();
+            if (r && r !== "-1") { await renderComments(0); }
+            else { await showError("Failed to post comment."); }
+          } catch (e) { hideLoader(); await showError("Error posting comment."); }
+        });
+      }
+      container.add([postBtn, postLabel]);
+      const pageTxt = this.add.bitmapText(cx, sh - 30, "goldFont", "Page " + (currentPage + 1), 16).setOrigin(0.5).setDepth(152);
+      const prevBtn = this.add.image(cx - 60, sh - 30, "GJ_GameSheet03", "GJ_arrow_02_001.png").setScale(0.5).setDepth(152).setInteractive();
+      this._makeBouncyButton(prevBtn, 0.5, async () => { if (currentPage > 0) { currentPage--; await renderComments(currentPage); pageTxt.setText("Page " + (currentPage + 1)); } });
+      const nextBtn = this.add.image(cx + 60, sh - 30, "GJ_GameSheet03", "GJ_arrow_02_001.png").setScale(0.5).setDepth(152).setFlipX(true).setInteractive();
+      this._makeBouncyButton(nextBtn, 0.5, async () => { currentPage++; await renderComments(currentPage); pageTxt.setText("Page " + (currentPage + 1)); });
+      container.add([prevBtn, pageTxt, nextBtn]);
+      const backBtn = this.add.image(50, 48, "GJ_GameSheet03", "GJ_arrow_03_001.png").setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive().setDepth(152);
+      this._makeBouncyButton(backBtn, 1, () => {
+        blocker.removeInteractive();
+        container.destroy();
+        overlay.destroy();
+        blocker.destroy();
+        this._profileOverlay = null;
+      });
+      this._profileOverlay = { overlay, blocker, container };
+    })();
+  }
+  _showLevelComments(levelId, levelName) {
+    if (this._profileOverlay) return;
+    (async () => {
+      const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+      const fadeIn = this.add.graphics().setScrollFactor(0).setDepth(200);
+      fadeIn.fillStyle(0x000000, 1);
+      fadeIn.fillRect(0, 0, sw, sh);
+      this.tweens.add({ targets: fadeIn, alpha: 0, duration: 300, ease: "Linear", onComplete: () => fadeIn.destroy() });
+      const overlay = this.add.graphics().setScrollFactor(0).setDepth(100);
+      for (let gi = 0; gi < 80; gi++) {
+        const t = gi / 79;
+        const r = Math.round(0x00 + (0x01 - 0x00) * t);
+        const g = Math.round(0x2c + (0x1a - 0x2c) * t);
+        const b = Math.round(0x71 + (0x3a - 0x71) * t);
+        overlay.fillStyle((r << 16) | (g << 8) | b, 1);
+        overlay.fillRect(0, Math.floor(gi * sh / 80), sw, Math.ceil(sh / 80) + 1);
+      }
+      const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(101).setInteractive();
+      const container = this.add.container(0, 0).setScrollFactor(0).setDepth(150);
+      const title = this.add.bitmapText(cx, 50, "goldFont", `${levelName} Comments`, 26).setOrigin(0.5).setDepth(152);
+      container.add(title);
+      let currentPage = 0;
+      let commentObjs = [];
+      const renderComments = async (page) => {
+        showLoader("Loading comments...");
+        try {
+          const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+          const body = `levelID=${levelId}&page=${page}&secret=Wmfd2893gb7`;
+          const res = await fetch(`${PROXY}/getGJComments21.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body
+          });
+          const text = await res.text();
+          hideLoader();
+          commentObjs = [];
+          if (text && text !== "-1") {
+            const entries = text.split("|");
+            for (const entry of entries) {
+              if (!entry || !entry.includes("~")) continue;
+              const cm = {};
+              const parts = entry.split("~");
+              for (let i = 0; i + 1 < parts.length; i += 2) cm[parts[i]] = parts[i + 1];
+              if (cm["2"]) {
+                const decoded = (() => {
+                  try { return atob(cm["2"].replace(/-/g, "+").replace(/_/g, "/")); } catch(e) { return cm["2"]; }
+                })();
+                const idx = entry.indexOf(":1~");
+                let authorName = "Unknown";
+                if (idx !== -1) {
+                  const authorPart = entry.substring(idx + 1);
+                  const ap = authorPart.split("~");
+                  for (let i = 0; i + 1 < ap.length; i += 2) { if (ap[i] === "1") { authorName = ap[i + 1]; break; } }
+                }
+                commentObjs.push({ text: decoded, age: cm["9"] || "", likes: cm["4"] || "0", percent: cm["10"] || "", author: authorName });
+              }
+            }
+          }
+        } catch (e) { hideLoader(); }
+        _renderCurrent();
+      };
+      const commentContainer = this.add.container(0, 0).setDepth(152);
+      const maskShape = this.add.rectangle(cx, sh / 2 + 30, sw - 80, sh - 200, 0).setVisible(false);
+      const mask = maskShape.createGeometryMask();
+      commentContainer.setMask(mask);
+      container.add([maskShape, commentContainer]);
+      const _renderCurrent = () => {
+        commentContainer.removeAll(true);
+        let y = 0;
+        for (const c of commentObjs) {
+          const bg = this.add.rectangle(0, y + 15, sw - 100, 70, 0x000000, 0.4).setOrigin(0.5);
+          bg.setStrokeStyle(1, 0x444444);
+          const txt = this.add.text(-(sw - 100) / 2 + 10, y + 2, `${c.author}: ${c.text}`, { fontSize: "14px", fontFamily: "Arial", color: "#ffffff", wordWrap: { width: sw - 140 } }).setOrigin(0, 0);
+          const meta = this.add.bitmapText(-(sw - 100) / 2 + 10, y + 50, "goldFont", `${c.age}  ${c.percent ? c.percent + "%" : ""}  \u2661${c.likes}`, 12).setOrigin(0, 0);
+          commentContainer.add([bg, txt, meta]);
+          y += 78;
+        }
+        if (commentObjs.length === 0) {
+          const empty = this.add.bitmapText(0, 0, "bigFont", "No comments yet.", 20).setOrigin(0.5);
+          commentContainer.add(empty);
+        }
+      };
+      await renderComments(0);
+      const postBtn = this.add.image(cx + 220, sh - 70, "GJ_GameSheet03", "GJ_chatBtn_001.png").setScale(0.65).setDepth(152).setInteractive();
+      const postLabel = this.add.bitmapText(cx + 270, sh - 70, "bigFont", "Post Comment", 16).setOrigin(0, 0.5).setDepth(152);
+      if (localStorage.getItem("loggedIn") !== "true") { postBtn.setAlpha(0.3); postLabel.setAlpha(0.3); }
+      else {
+        this._makeBouncyButton(postBtn, 0.65, async () => {
+          const comment = await customPrompt("Enter your comment (max 100 chars)");
+          if (!comment) return;
+          showLoader("Posting...");
+          try {
+            const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+            const enc = btoa(unescape(encodeURIComponent(comment))).replace(/\+/g, "-").replace(/\//g, "_");
+            const chkStr = `${localStorage.getItem("username")}${enc}${levelId}0` + "0xPT6iUrtws0J";
+            const chkKey = "29481";
+            let chk = "";
+            for (let i = 0; i < chkStr.length; i++) chk += String.fromCharCode(chkStr.charCodeAt(i) ^ chkKey.charCodeAt(i % chkKey.length));
+            chk = btoa(chk).replace(/\+/g, "-").replace(/\//g, "_");
+            const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&userName=${encodeURIComponent(localStorage.getItem("username"))}&comment=${enc}&levelID=${levelId}&percent=0&chk=${chk}&secret=Wmfd2893gb7`;
+            const res = await fetch(`${PROXY}/uploadGJComment21.php`, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body
+            });
+            const r = await res.text();
+            hideLoader();
+            if (r && r !== "-1") { await renderComments(0); }
+            else { await showError("Failed to post comment."); }
+          } catch (e) { hideLoader(); await showError("Error posting comment."); }
+        });
+      }
+      container.add([postBtn, postLabel]);
+      const pageTxt = this.add.bitmapText(cx, sh - 30, "goldFont", "Page " + (currentPage + 1), 16).setOrigin(0.5).setDepth(152);
+      const prevBtn = this.add.image(cx - 60, sh - 30, "GJ_GameSheet03", "GJ_arrow_02_001.png").setScale(0.5).setDepth(152).setInteractive();
+      this._makeBouncyButton(prevBtn, 0.5, async () => { if (currentPage > 0) { currentPage--; await renderComments(currentPage); pageTxt.setText("Page " + (currentPage + 1)); } });
+      const nextBtn = this.add.image(cx + 60, sh - 30, "GJ_GameSheet03", "GJ_arrow_02_001.png").setScale(0.5).setDepth(152).setFlipX(true).setInteractive();
+      this._makeBouncyButton(nextBtn, 0.5, async () => { currentPage++; await renderComments(currentPage); pageTxt.setText("Page " + (currentPage + 1)); });
+      container.add([prevBtn, pageTxt, nextBtn]);
+      const backBtn = this.add.image(50, 48, "GJ_GameSheet03", "GJ_arrow_03_001.png").setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive().setDepth(152);
+      this._makeBouncyButton(backBtn, 1, () => {
+        blocker.removeInteractive();
+        container.destroy();
+        overlay.destroy();
+        blocker.destroy();
+        this._profileOverlay = null;
+      });
+      this._profileOverlay = { overlay, blocker, container };
+    })();
   }
 }
