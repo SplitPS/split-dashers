@@ -349,15 +349,10 @@ window.LevelObject = class LevelObject {
   loadLevel(levelData) {
     window._animatedSprites = [];
     window._animTimer = 0;
-    let levelObjects = [];
-    let settingslist = "";
-    try {
-      const parsed = parseLevel(levelData);
-      levelObjects = parsed.objects;
-      settingslist = parsed.settings;
-    } catch (e) {
-      console.warn("Failed to parse level data, loading empty level", e);
-    }
+    let {
+      objects: levelObjects,
+      settings: settingslist
+    } = parseLevel(levelData);
     this._spawnLevelObjects(levelObjects);
     this._setUpSettings(settingslist);
     window.levelObjects = levelObjects;

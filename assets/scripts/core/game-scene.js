@@ -435,8 +435,8 @@ const PLAYALEVELORSMTHFUCKIDK = async (levelId, scene) => {
     // flash.fillRect(0, 0, sw, sh);
     // scene.tweens.add({
       // targets: flash, alpha: 1, duration: 250, ease: "Linear",
-      if (window._sceneRestarting) return; window._sceneRestarting = true;
       scene.scene.restart();
+      // onComplete: () => scene.scene.restart()
     // });
   });
 };
@@ -738,13 +738,6 @@ class GameScene extends Phaser.Scene {
     });
   }
   create() {
-    window._sceneRestarting = false;
-    if (!this.game.registry.get("autoStartGame")) {
-      window._onlineLevelString = null;
-      window._onlineLevelId = null;
-      window._onlineSongBuffer = null;
-      window._onlineSongKey = null;
-    }
     this._bgSpeedX = 0.1;
     this._bgSpeedY = 0.1;
     this._menuCameraX = -centerX;
@@ -1841,7 +1834,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
               }
           }
         }
-        if (window._sceneRestarting) return; window._sceneRestarting = true;
         this.scene.restart();
     };
     this._closeEditorMenu = () => {
@@ -2116,7 +2108,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const songIdRaw     = (gdMap["35"] || "").trim();
         const isCustomSong  = !!songIdRaw && songIdRaw !== "0";
         const officialSongId = gdMap["12"] || "0";
-  const songKey = isCustomSong ? `ng_song_${songIdRaw}` : (window.allLevels[officialSongId] || window.allLevels[0])[0];
+        const songKey = isCustomSong ? `ng_song_${songIdRaw}` : window.allLevels[officialSongId][0];
         window.currentlevel[0] = songKey;
         window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
         console.log("iscustomsong?");
@@ -2183,7 +2175,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           flash.fillRect(0, 0, sw, sh);
           this.tweens.add({
             targets: flash, alpha: 1, duration: 250, ease: "Linear",
-            onComplete: () => { if (window._sceneRestarting) return; window._sceneRestarting = true; this.scene.restart(); }
+            onComplete: () => this.scene.restart()
           });
         });
       };
@@ -2199,15 +2191,12 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         this._searchOverlayObjects.push(loadingBg, loadingText);
         _doSearchInner(window.levelID);
       }
-      this._searchKeyDown = (e) => {
+      window.addEventListener("keydown", (e) => {
         if (e.key === "Enter") _doSearch();
         e.stopPropagation();
-      };
-      this._searchKeyUp = (e) => e.stopPropagation();
-      this._searchKeyPress = (e) => e.stopPropagation();
-      window.addEventListener("keydown", this._searchKeyDown);
-      window.addEventListener("keyup", this._searchKeyUp);
-      window.addEventListener("keypress", this._searchKeyPress);
+      });
+      window.addEventListener("keyup", (e) => e.stopPropagation());
+      window.addEventListener("keypress", (e) => e.stopPropagation());
       this._searchHtmlInput = htmlInput;
       this._searchInputResizeFn = _repositionInput;
     };
@@ -2220,18 +2209,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       if (this._searchInputResizeFn) {
         window.removeEventListener("resize", this._searchInputResizeFn);
         this._searchInputResizeFn = null;
-      }
-      if (this._searchKeyDown) {
-        window.removeEventListener("keydown", this._searchKeyDown);
-        this._searchKeyDown = null;
-      }
-      if (this._searchKeyUp) {
-        window.removeEventListener("keyup", this._searchKeyUp);
-        this._searchKeyUp = null;
-      }
-      if (this._searchKeyPress) {
-        window.removeEventListener("keypress", this._searchKeyPress);
-        this._searchKeyPress = null;
       }
       const destroy = () => {
         for (const obj of this._searchOverlayObjects) {
@@ -3085,7 +3062,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         this._audio.playEffect("quitSound_01");
         this._audio.stopMusic();
         this._resumeGame();
-        if (window._sceneRestarting) return; window._sceneRestarting = true;
         this.scene.restart();
       } else if (!this._menuActive && !this._slideIn && !this._levelWon) {
         this._pauseGame();
@@ -3454,7 +3430,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           this._closeLevelSelect(true);
           this._audio.stopMusic();
           this.game.registry.set("autoStartGame", true);
-          if (window._sceneRestarting) return; window._sceneRestarting = true;
           this.scene.restart();
         } else {
           this.tweens.killTweensOf(cardBounceContainer, "scale");
@@ -3986,7 +3961,6 @@ _buildPauseOverlay() {
             this._audio.playEffect("quitSound_01");
             this._audio.stopMusic();
             this._resumeGame();
-            if (window._sceneRestarting) return; window._sceneRestarting = true;
             this.scene.restart();
         }},
         { frame: "GJ_replayBtn_001.png", atlas: "GJ_WebSheet", action: () => {
@@ -6099,7 +6073,7 @@ buildAccountInfo() {
       if (this._state.onGround && !this._playerOnGroundPrev) {
         this._autoCheckpointLandTime = this.time.now;
       }
-      if (this._state.onGround && this._autoCheckpointLandTime > this._practicedMode.lastAutoCheckpointTime && this.time.now - this._autoCheckpointLandTime >= 100) {
+      if (this._state.onGround && this._autoCheckpointLandTime > this._practicedMode.lastAutoCheckpointTime && this.time.now - this._autoCheckpointLandTime >= 500) {
         this._practicedMode.saveCheckpoint(this._state, this._playerWorldX, this._cameraX, this);
         this._practicedMode.lastAutoCheckpointTime = this.time.now;
       }
@@ -6175,7 +6149,6 @@ buildAccountInfo() {
           this._closeLevelSelect(true);
           this._audio.stopMusic();
           this.game.registry.set("autoStartGame", true);
-          if (window._sceneRestarting) return; window._sceneRestarting = true;
           this.scene.restart();
           return;
         }
@@ -7593,7 +7566,6 @@ _initEditorPauseMenu = () => {
                 await this._showLoadingBuffer("Loading...");
                 window.isEditor = false; 
                 this.game.registry.set("autoStartGame", true); 
-                if (window._sceneRestarting) return; window._sceneRestarting = true;
                 this.scene.restart(); 
             } 
         },
@@ -7603,13 +7575,12 @@ _initEditorPauseMenu = () => {
                 this._saveEditorLevel(); 
                 await this._showLoadingBuffer("Loading...");
                 window.isEditor = false; 
-                if (window._sceneRestarting) return; window._sceneRestarting = true;
                 this.scene.restart(); 
             } 
         },
         { text: "Change Song", cb: () => this._editorChangeSong() },
         { text: "Save", cb: () => this._saveEditorLevel() },
-        { text: "Exit", cb: () => { window.isEditor = false; if (window._sceneRestarting) return; window._sceneRestarting = true; this.scene.restart(); } }
+        { text: "Exit", cb: () => { window.isEditor = false; this.scene.restart(); } }
     ];
 
     buttonData.forEach((data, i) => {
@@ -8206,7 +8177,6 @@ _applyMirrorEffect() {
         this.game.registry.set("fadeInFromBlack", true);
         this.cameras.main.fadeOut(400, 0, 0, 0, (_0x53bf86, _0x15310d) => {
           if (_0x15310d >= 1) {
-            if (window._sceneRestarting) return; window._sceneRestarting = true;
             this.scene.restart();
           }
         });
