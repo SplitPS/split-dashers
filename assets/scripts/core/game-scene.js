@@ -1801,7 +1801,10 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           body: formBody
         });
         console.log("fetch done");
-        if (!res.ok) hideLoader();throw new Error(`Proxy returned ${res.status}`);
+        if (!res.ok) {
+          hideLoader()
+          throw new Error(`Proxy returned ${res.status}`);
+        }
         const rawResponse = await res.text();
         if (!rawResponse || rawResponse === "-1" || !rawResponse.includes(":")) {
           hideLoader();
