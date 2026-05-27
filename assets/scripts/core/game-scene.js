@@ -991,6 +991,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             await _doSearchInner(id);
             })();
           })
+        }
         } else {
           btn.setTint(0x666666);
         }
