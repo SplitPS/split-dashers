@@ -1049,10 +1049,12 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             this._openEditorMenu();
           }, () => true);
         } else if (isHighscoreButton) {
+          btn.setTint(0x666666);
+        } else if (frame === "GJ_versusBtn_001.png") {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
             this._closeCreatorMenu(true);
-            this._showLeaderboardScreen();
+            this._openVersusMenu();
           }, () => true);
         } else if (isDailyButton) {
           btn.setInteractive();
@@ -3166,8 +3168,19 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         this._hideAchievementsScreen();
         return;
       }
-      if (this._leaderboardPopup) {
-        this._hideLeaderboardScreen();
+      if (this._versusPopup) {
+        this._closeVersusMenu();
+        return;
+      }
+      if (this._versusResultObjs) {
+        for (const o of this._versusResultObjs) o.destroy();
+        this._versusResultObjs = null;
+        this._versusResultShown = false;
+        this._versusMode = false;
+        if (this._versusConn) { try { this._versusConn.close(); } catch(e) {} this._versusConn = null; }
+        if (this._versusPeer) { try { this._versusPeer.destroy(); } catch(e) {} this._versusPeer = null; }
+        if (this._versusOpponentSprite) { this._versusOpponentSprite.destroy(); this._versusOpponentSprite = null; }
+        this.scene.restart();
         return;
       }
       if (this._paused) {
@@ -6411,6 +6424,7 @@ buildAccountInfo() {
     }
     this._playTime += deltaTime / 1000;
     this._audio.update(deltaTime / 1000);
+    if (this._versusMode && !this._menuActive) this._updateVersus();
     
     window._animTimer += deltaTime;
     for (let _as of window._animatedSprites) {
@@ -8899,6 +8913,197 @@ _applyMirrorEffect() {
     this._leaderboardUI = null;
     this._leaderboardPopup = false;
   }
+  _openVersusMenu() {
+    if (this._versusPopup) return;
+    const aid = localStorage.getItem("aid");
+    const gjp2 = localStorage.getItem("gjp2");
+    if (!aid || !gjp2) {
+      Swal.fire({ title: "Login Required", text: "You must be logged in to use Versus mode.", icon: "warning", confirmButtonColor: "#3085d6" });
+      return;
+    }
+    this._versusPopup = true;
+    const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+
+    const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(200).setInteractive();
+    const overlay = this.add.graphics().setScrollFactor(0).setDepth(201);
+    for (let gi = 0; gi < 80; gi++) {
+      const t = gi / 79;
+      overlay.fillStyle(Phaser.Display.Color.GetColor(Math.round(0x1a + (0x0a - 0x1a) * t), Math.round(0x2a + (0x1a - 0x2a) * t), Math.round(0x4a + (0x3a - 0x4a) * t)), 1);
+      overlay.fillRect(0, Math.floor(gi * sh / 80), sw, Math.ceil(sh / 80) + 1);
+    }
+
+    const tw = 500, th = 400;
+    const tx = (sw - tw) / 2, ty = (sh - th) / 2;
+    const panel = this.add.graphics().fillStyle(0x6b3f1f, 1).fillRoundedRect(tx, ty, tw, th, 12).setScrollFactor(0).setDepth(202);
+    panel.fillStyle(0x8b5e3c, 1).fillRoundedRect(tx, ty + 4, tw, 56, 12);
+
+    const title = this.add.bitmapText(cx, ty + 32, "bigFont", "Versus", 36).setOrigin(0.5).setScrollFactor(0).setDepth(203);
+    const backBtn = this.add.image(50, 40, "GJ_GameSheet03", "GJ_arrow_03_001.png").setScrollFactor(0).setDepth(204).setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive();
+    this._makeBouncyButton(backBtn, 1, () => { this._closeVersusMenu(); });
+    const statusTxt = this.add.bitmapText(cx, ty + 80, "goldFont", "", 20).setOrigin(0.5).setScrollFactor(0).setDepth(203);
+
+    const hostBtn = this.add.image(cx, ty + 130, "GJ_GameSheet03", "GJ_longBtn01_001.png").setScrollFactor(0).setDepth(203).setInteractive();
+    const hostLbl = this.add.bitmapText(cx, ty + 130, "bigFont", "Host Game", 24).setOrigin(0.5).setScrollFactor(0).setDepth(204);
+
+    const orTxt = this.add.bitmapText(cx, ty + 180, "goldFont", "- OR -", 20).setOrigin(0.5).setScrollFactor(0).setDepth(203);
+
+    const joinBtn = this.add.image(cx, ty + 230, "GJ_GameSheet03", "GJ_longBtn01_001.png").setScrollFactor(0).setDepth(203).setInteractive();
+    const joinLbl = this.add.bitmapText(cx, ty + 230, "bigFont", "Join Game", 24).setOrigin(0.5).setScrollFactor(0).setDepth(204);
+
+    this._makeBouncyButton(hostBtn, 1, () => this._hostVersus(hostBtn, hostLbl, joinBtn, joinLbl, orTxt, statusTxt, tx, ty, cx));
+    this._makeBouncyButton(joinBtn, 1, () => this._joinVersus(hostBtn, hostLbl, joinBtn, joinLbl, orTxt, statusTxt, tx, ty, cx));
+
+    const objects = [overlay, blocker, panel, title, backBtn, statusTxt, hostBtn, hostLbl, orTxt, joinBtn, joinLbl];
+    this._versusUI = objects;
+  }
+
+  _closeVersusMenu() {
+    if (!this._versusUI) return;
+    for (const o of this._versusUI) if (o && o.destroy) o.destroy();
+    this._versusUI = null;
+    this._versusPopup = false;
+    if (this._versusPeer) { this._versusPeer.destroy(); this._versusPeer = null; }
+    this._versusConn = null;
+  }
+
+  _hostVersus(hostBtn, hostLbl, joinBtn, joinLbl, orTxt, statusTxt, tx, ty, cx) {
+    if (this._versusPeer) return;
+    statusTxt.setText("Creating room...");
+    this._versusPeer = new Peer();
+    this._versusPeer.on("open", (id) => {
+      hostBtn.setVisible(false); hostLbl.setVisible(false);
+      joinBtn.setVisible(false); joinLbl.setVisible(false);
+      orTxt.setVisible(false);
+      statusTxt.setText("Room ID: " + id);
+      const copyBtn = this.add.image(cx, ty + 115, "GJ_GameSheet03", "GJ_longBtn02_001.png").setScrollFactor(0).setDepth(204).setInteractive();
+      const copyLbl = this.add.bitmapText(cx, ty + 115, "goldFont", "Copy Room ID", 18).setOrigin(0.5).setScrollFactor(0).setDepth(205);
+      this._makeBouncyButton(copyBtn, 1, () => {
+        navigator.clipboard.writeText(id);
+        copyLbl.setText("Copied!");
+      });
+      this._versusUI.push(copyBtn, copyLbl);
+      statusTxt.setText("Room ID: " + id + " (shared below)");
+    });
+    this._versusPeer.on("connection", (conn) => {
+      this._versusConn = conn;
+      statusTxt.setText("Connected! Enter level ID:");
+      this._showVersusLevelInput(tx, ty, cx, true);
+    });
+  }
+
+  _joinVersus(hostBtn, hostLbl, joinBtn, joinLbl, orTxt, statusTxt, tx, ty, cx) {
+    if (this._versusPeer) return;
+    (async () => {
+      const peerId = await customPrompt("Enter the host's Room ID:");
+      if (!peerId || !peerId.trim()) return;
+      hideLoader();
+      showLoader("Connecting...");
+      this._versusPeer = new Peer();
+      this._versusPeer.on("open", () => {
+        const conn = this._versusPeer.connect(peerId.trim());
+        this._versusConn = conn;
+        conn.on("open", () => {
+          hideLoader();
+          hostBtn.setVisible(false); hostLbl.setVisible(false);
+          joinBtn.setVisible(false); joinLbl.setVisible(false);
+          orTxt.setVisible(false);
+          statusTxt.setText("Connected! Waiting for host...");
+        });
+        conn.on("data", (data) => this._versusHandleData(data, statusTxt, tx, ty, cx));
+        conn.on("error", () => { hideLoader(); Swal.fire({ title: "Connection Failed", text: "Could not connect to host.", icon: "error", confirmButtonColor: "#3085d6" }); });
+      });
+      this._versusPeer.on("error", () => { hideLoader(); Swal.fire({ title: "Error", text: "Failed to create peer connection.", icon: "error", confirmButtonColor: "#3085d6" }); });
+    })();
+  }
+
+  _showVersusLevelInput(tx, ty, cx, isHost) {
+    (async () => {
+      if (!isHost) return;
+      const id = await customPrompt("Enter the level ID to play:");
+      if (!id || !id.trim()) return;
+      const levelId = id.trim().replace(/\D/g, "");
+      if (!levelId) { Swal.fire({ title: "Invalid", text: "Enter a numeric level ID.", icon: "error", confirmButtonColor: "#3085d6" }); return; }
+      this._versusConn.send("level:" + levelId);
+      this._beginVersusGame(levelId, tx, ty, cx);
+    })();
+  }
+
+  _versusHandleData(data, statusTxt, tx, ty, cx) {
+    if (typeof data === "string") {
+      if (data.startsWith("level:")) {
+        const id = data.replace("level:", "");
+        statusTxt.setText("Starting level " + id + "...");
+        this._beginVersusGame(id, tx, ty, cx);
+      } else if (data === "win") {
+        this._showVersusResult(false);
+      }
+    } else if (data && data.type === "state") {
+      this._versusOpponent = data;
+    }
+  }
+
+  _beginVersusGame(levelId, tx, ty, cx) {
+    if (this._versusUI) {
+      for (const o of this._versusUI) if (o && o.destroy) o.destroy();
+      this._versusUI = null;
+    }
+    this._versusPopup = false;
+    this._versusMode = true;
+    this._versusOpponent = null;
+    this._versusOpponentSprite = null;
+    this._playOnlineLevel(parseInt(levelId));
+  }
+
+  _showVersusResult(won) {
+    if (this._versusResultShown) return;
+    this._versusResultShown = true;
+    const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+    const bg = this.add.rectangle(cx, sh / 2, sw, sh, 0x000000, 0.7).setScrollFactor(0).setDepth(300).setInteractive();
+    const txt = this.add.bitmapText(cx, sh / 2 - 40, "bigFont", won ? "You Win!" : "You Lose!", won ? 64 : 48).setOrigin(0.5).setScrollFactor(0).setDepth(301);
+    if (won) txt.setTint(0x00ff00); else txt.setTint(0xff4444);
+    const sub = this.add.bitmapText(cx, sh / 2 + 20, "goldFont", "Press ESC to exit", 22).setOrigin(0.5).setScrollFactor(0).setDepth(301);
+    this._versusResultObjs = [bg, txt, sub];
+  }
+
+  _updateVersus() {
+    if (!this._versusMode || !this._versusConn || this._paused) return;
+    if (this._levelWon && !this._versusResultShown) {
+      this._versusConn.send("win");
+      this._showVersusResult(true);
+      return;
+    }
+    this._versusConn.send({
+      type: "state",
+      x: this._playerWorldX || 0,
+      y: this._state ? this._state.y : 0,
+      vy: this._state ? this._state.yVelocity : 0,
+      rot: this._player ? this._player._shipSpriteLayer?.sprite?.rotation || 0 : 0,
+      dead: this._state ? this._state.isDead : false
+    });
+    if (this._versusOpponent && !this._versusResultShown) {
+      this._renderVersusOpponent();
+    }
+  }
+
+  _renderVersusOpponent() {
+    const opp = this._versusOpponent;
+    if (!opp) return;
+    const sh = screenHeight;
+    const screenX = opp.x - this._cameraX;
+    const screenY = sh - opp.y;
+
+    if (!this._versusOpponentSprite || this._versusOpponentSprite._destroyed) {
+      this._versusOpponentSprite = this.add.rectangle(screenX, screenY, 20, 30, 0xff4444, 0.9).setDepth(50).setScrollFactor(0);
+      this._versusOpponentSprite.setOrigin(0.5, 1);
+    } else {
+      this._versusOpponentSprite.setPosition(screenX, screenY);
+    }
+    if (opp.dead) {
+      this._versusOpponentSprite.setAlpha(0.3);
+    } else {
+      this._versusOpponentSprite.setAlpha(1);
+    }
+  }
   _showStatsScreen() {
     if (this._pauseBtn) {
       this.tweens.add({
@@ -9322,7 +9527,7 @@ _applyMirrorEffect() {
       if (rowY + rowH < boundaryTop || rowY > boundaryBottom) return cellObjs;
 
       const cellBg = this.add.rectangle(rx + panelW / 2, rowY + 2, panelW - 8, rowH - 4, 0x000000, 0.4)
-        .setScrollFactor(0).setDepth(202).setOrigin(0.5).setInteractive();
+        .setScrollFactor(0).setDepth(202);
       cellObjs.push(cellBg);
 
       const nameTxt = this.add.bitmapText(rx + 100, rowY + 20, "bigFont", levelData.name, 36).setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
@@ -9355,11 +9560,6 @@ _applyMirrorEffect() {
         .setScrollFactor(0).setDepth(204).setInteractive().setScale(0.5);
       cellObjs.push(playBtn);
       this._makeBouncyButton(playBtn, 0.5, () => {
-        for (const o of activeCellObjs) if (o && o.destroy) o.destroy();
-        this._playOnlineLevel(levelData.id);
-      });
-
-      cellBg.on("pointerdown", () => {
         for (const o of activeCellObjs) if (o && o.destroy) o.destroy();
         this._playOnlineLevel(levelData.id);
       });
