@@ -131,7 +131,8 @@ class BootScene extends Phaser.Scene {
       "idk what to put here",
       "fridge",
       "webtv",
-      "you're only getting rates if they're rate worhty -- Fridge 2026"
+      "you're only getting rates if they're rate worhty -- Fridge 2026",
+      "Sorry, hotlinking from this site has been disabled -- newgrounds"
     ];
     const sliderOriginX = cx - 105;
     const sliderOriginY = cy + 110;
