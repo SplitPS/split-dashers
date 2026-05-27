@@ -1321,7 +1321,9 @@ window.LevelObject = class LevelObject {
         47: "ball",
         660: "wave",
         111: "ufo",
+        745: "robot",
         1331: "spider",
+        1332: "swing",
         286: "dual_on",
         287: "dual_off"
       }[levelObj.id];
@@ -1338,6 +1340,8 @@ window.LevelObject = class LevelObject {
         wave: portalWaveType,
         ufo: portalUfoType,
         spider: "portal_spider",
+        robot: "portal_robot",
+        swing: "portal_swing",
         mirrora: "portal_mirror_on",
         mirrorb: "portal_mirror_off",
         shrink: "portal_mini_on",
@@ -1403,6 +1407,29 @@ window.LevelObject = class LevelObject {
       this.objects.push(speedObj);
       hasCollisionEntry = true;
       this._addCollisionToSection(speedObj);
+    } else if (levelObj.id === 1332) {
+      const sw = (objectDef.gridW || 1) * a;
+      const sh = (objectDef.gridH || 1) * a;
+      const collider = new Collider("portal_swing", worldX, worldY, sw, sh, levelObj.rot || 0);
+      collider.portalY = worldY;
+      registerCollider(collider);
+      this.objects.push(collider);
+      hasCollisionEntry = true;
+      this._addCollisionToSection(collider);
+    } else if (_SLOPE_DATA[levelObj.id]) {
+      const slopeInfo = _SLOPE_DATA[levelObj.id];
+      const sw = slopeInfo.gw * a;
+      const sh = slopeInfo.gh * a;
+      const collider = new Collider(slopeType, worldX, worldY, sw, sh, levelObj.rot || 0);
+      collider.slopeAngleDeg = slopeInfo.angle;
+      collider.slopeDir = levelObj.flipX ? -1 : 1;
+      collider.slopeIsFilled = slopeInfo.sq;
+      collider.slopeFlipY = levelObj.flipY;
+      collider.objid = levelObj.id;
+      registerCollider(collider);
+      this.objects.push(collider);
+      hasCollisionEntry = true;
+      this._addCollisionToSection(collider);
     }
 
     if (!hasCollisionEntry) {

@@ -1049,13 +1049,13 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             this._openEditorMenu();
           }, () => true);
         } else if (isHighscoreButton) {
-          btn.setTint(0x666666);
-        } else if (frame === "GJ_versusBtn_001.png") {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
             this._closeCreatorMenu(true);
-            this._openVersusMenu();
+            this._showLeaderboardScreen();
           }, () => true);
+        } else if (frame === "GJ_versusBtn_001.png") {
+          btn.setTint(0x666666);
         } else if (isDailyButton) {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
@@ -3184,10 +3184,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         return;
       }
       if (this._paused) {
-        this._audio.playEffect("quitSound_01");
-        this._audio.stopMusic();
         this._resumeGame();
-        this.scene.restart();
       } else if (!this._menuActive && !this._slideIn && !this._levelWon) {
         this._pauseGame();
       }
@@ -8833,8 +8830,9 @@ _applyMirrorEffect() {
     });
 
     const loadingTxt = this.add.bitmapText(cx, sh / 2, "bigFont", "Loading...", 30).setOrigin(0.5).setScrollFactor(0).setDepth(205);
-    const lbObjects = [overlay, blocker, container, backBtn, loadingTxt];
+    const lbObjects = [overlay, blocker, container, backBtn];
     this._leaderboardUI = lbObjects;
+    this._leaderboardLoadingTxt = loadingTxt;
 
     const listTop = ty + 64;
     const listH = th - 68;
@@ -8863,7 +8861,7 @@ _applyMirrorEffect() {
           body: data.toString()
         });
         const text = await res.text();
-        loadingTxt.destroy();
+        if (this._leaderboardLoadingTxt) { this._leaderboardLoadingTxt.destroy(); this._leaderboardLoadingTxt = null; }
 
         if (!text || text === "-1") {
           listContainer.add(this.add.bitmapText(cx, listTop + 40, "bigFont", "Failed to load leaderboard", 22).setOrigin(0.5));
@@ -8902,13 +8900,14 @@ _applyMirrorEffect() {
           listContainer.add(infoTxt);
         });
       } catch (e) {
-        loadingTxt.destroy();
+        if (this._leaderboardLoadingTxt) { this._leaderboardLoadingTxt.destroy(); this._leaderboardLoadingTxt = null; }
         listContainer.add(this.add.bitmapText(cx, listTop + 40, "bigFont", "Error loading leaderboard", 22).setOrigin(0.5));
       }
     })();
   }
   _hideLeaderboardScreen() {
     if (!this._leaderboardUI) return;
+    if (this._leaderboardLoadingTxt) { this._leaderboardLoadingTxt.destroy(); this._leaderboardLoadingTxt = null; }
     for (const obj of this._leaderboardUI) obj.destroy();
     this._leaderboardUI = null;
     this._leaderboardPopup = false;
