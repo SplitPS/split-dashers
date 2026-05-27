@@ -1485,7 +1485,8 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         container.add([nameBox, titleText, titleCursor, descBox, descText, descCursor, playBtn, editBtn, shareBtn, backBtn, deleteBtn, lengthIcon, lengthLabel, songIcon, songLabel, statusIcon, statusLabel, versionText, idText]);
     };
     this._startCreatedLevel = async (level, isEditor) => {
-        const PROXY_BASE = (window._gdProxyUrl || "").replace(/\/$/, "");
+      window._gdProxyUrl = "https://tails1154.com:9995/https://split.ps.fhgdps.com";
+        const PROXY_BASE = window._gdProxyUrl; //(window._gdProxyUrl || "").replace(/\/$/, "");
         window._onlineLevelString = level.levelString;
         window._onlineLevelName = level.levelName;
         window._onlineLevelId = level.createdId;
@@ -1789,8 +1790,9 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       const _doSearchInner = async (levelId) => {
         console.log("Downloading");
         showLoader("Downloading level");
-        const PROXY_BASE = (window._gdProxyUrl || "").replace(/\/$/, "");
-        if (!PROXY_BASE) hideLoader();showError("PROXY_BASE is not set, please create a github issue.");return;
+        window._gdProxyUrl = "https://tails1154.com:9995/https://split.ps.fhgdps.com"
+        const PROXY_BASE = window._gdProxyUrl; //(window._gdProxyUrl || "").replace(/\/$/, "");
+        // if (!PROXY_BASE) hideLoader();showError("PROXY_BASE is not set, please create a github issue.");return;
         const formBody = `levelID=${levelId}&secret=Wmfd2893gb7`;
         console.log("fetch");
         const res = await fetch(`${PROXY_BASE}/downloadGJLevel22.php`, {
