@@ -14,30 +14,17 @@ class AudioManager {
   _effectiveVolume() {
     return this._userMusicVol * 0.8;
   }
-  _stopOnlineSource() {
-    if (this._onlineSource) {
-      try { this._onlineSource.stop(); } catch(e) {}
-      try { this._onlineSource.disconnect(); } catch(e) {}
-      this._onlineSource = null;
-    }
-    if (this._onlineGain) {
-      try { this._onlineGain.disconnect(); } catch(e) {}
-      this._onlineGain = null;
-    }
-  }
   startMusic(StartPosOffset = 0) {
     let savedPosition = 0;
     let savedKey = null;
     if (this._music && this._music.isPlaying) {
       savedPosition = this._music.seek || 0;
       savedKey = this._music.key;
-    }
-    this._stopOnlineSource();
+    }  
     if (this._music) {
       this._music.stop();
       this._music.destroy();
     }
-    this._musicPlaying = false;
     if (this._scene._practicedMode && this._scene._practicedMode.practiceMode) {
       const practiceSongKey = "StayInsideMe";
       if (this._scene.cache.audio.exists(practiceSongKey)) {
@@ -55,15 +42,13 @@ class AudioManager {
       }
     }
     if (window._onlineSongBuffer && window._onlineSongKey === window.currentlevel[0]) {
-      const startOffset = Number(window.settingsMap['kA13']) || 0;
+      const startOffset = window.settingsMap['kA13'] ? new Number(window.settingsMap['kA13']) : 0;
       this._playOnlineBuffer(window._onlineSongBuffer, startOffset + StartPosOffset);
       this._setupAnalyser();
-      this._musicPlaying = true;
       return;
     }
     const _songKey = window.currentlevel[0];
     if (!this._scene.cache.audio.exists(_songKey)) {
-      this._musicPlaying = true;
       this._setupAnalyser();
       return;
     }
@@ -72,10 +57,9 @@ class AudioManager {
       volume: this._effectiveVolume()
     });
     this._music.play();
-    const startOffset = Number(window.settingsMap['kA13']) || 0;
+    const startOffset = window.settingsMap['kA13'] ? new Number(window.settingsMap['kA13']) : 0;
     this._music.seek = startOffset + StartPosOffset;
     this._setupAnalyser();
-    this._musicPlaying = true;
   }
   _playOnlineBuffer(audioBuffer, startOffset = 0) {
     const soundMgr = this._scene.game.sound;
@@ -259,9 +243,6 @@ class AudioManager {
   _setupAnalyser() {
     const audioContext = this._scene.sound.context;
     if (audioContext) {
-      if (this._analyser) {
-        try { this._scene.sound.masterVolumeNode.disconnect(this._analyser); } catch(e) {}
-      }
       this._analyser = audioContext.createAnalyser();
       this._analyser.fftSize = 2048;
       this._meterBuffer = new Float32Array(this._analyser.fftSize);
@@ -273,8 +254,7 @@ class AudioManager {
     if (!this._music) return;
     const isPracticeMode = this._scene._practicedMode && this._scene._practicedMode.practiceMode;
     const expectedSongKey = isPracticeMode ? "StayInsideMe" : window.currentlevel[0];
-    const currentKey = this._music.key || window._onlineSongKey;
-    if (currentKey !== expectedSongKey) {
+    if (this._music.key !== expectedSongKey && window._onlineSongKey !== expectedSongKey) {
       const offset = this._scene._getStartPosMusicOffset();
       this.startMusic(offset);
     }

@@ -347,8 +347,6 @@ window.LevelObject = class LevelObject {
     }
   }
   loadLevel(levelData) {
-    window._animatedSprites = [];
-    window._animTimer = 0;
     let {
       objects: levelObjects,
       settings: settingslist
@@ -362,22 +360,18 @@ window.LevelObject = class LevelObject {
     this._initialColors = {};
     this._backgroundId = null;
     this._groundId = null;
-    window._backgroundId = "01";
-    window._groundId = "00";
-    window.settingsMap = {};
     if (!settingsStr) return;
     let pairs = settingsStr.split(",");
+    window.settingsMap = {};
     for (let i = 0; i + 1 < pairs.length; i += 2) {
-      window.settingsMap[pairs[i]] = pairs[i + 1];
+      settingsMap[pairs[i]] = pairs[i + 1];
     }
-    let colorStr = window.settingsMap["kS38"];
-    if (window.settingsMap["kA6"]) {
-      window._backgroundId = window.settingsMap["kA6"];
-      if (window._backgroundId.length < 2) {
-        window._backgroundId = "0"+window._backgroundId;
-      }
+    let colorStr = settingsMap["kS38"];
+    window._backgroundId = settingsMap["kA6"] ? settingsMap["kA6"] : "01";
+    if (window._backgroundId.length < 2) {
+      window._backgroundId = "0"+window._backgroundId;
     }
-    window._groundId = getGroundTextureId(window.settingsMap["kA7"]);
+    window._groundId = getGroundTextureId(settingsMap["kA7"]);
     if (colorStr) {
       let channels = colorStr.split("|");
       for (let ch of channels) {

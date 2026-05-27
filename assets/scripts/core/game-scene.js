@@ -371,8 +371,10 @@ const PLAYALEVELORSMTHFUCKIDK = async (levelId, scene) => {
   const songKey = isCustomSong ? `ng_song_${songIdRaw}` : window.allLevels[officialSongId][0];
   window.currentlevel[0] = songKey;
   window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
+  hideLoader();
   console.log("iscustomsong?");
   if (isCustomSong) {
+    hideLoader();
     showLoader("Downloading Song");
     window._onlineSongBuffer = null;
     window._onlineSongKey    = null;
@@ -2112,8 +2114,10 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const songKey = isCustomSong ? `ng_song_${songIdRaw}` : window.allLevels[officialSongId][0];
         window.currentlevel[0] = songKey;
         window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
+        hideLoader();
         console.log("iscustomsong?");
         if (isCustomSong) {
+          hideLoader();
           showLoader("Downloading Song");
           window._onlineSongBuffer = null; 
           window._onlineSongKey    = null;
@@ -3743,9 +3747,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       if (this._practicedMode.practiceMode) {
         const enabled = this._practicedMode.toggleAutoCheckpoints();
         this._autoCheckpointBtn.setTexture("GJ_GameSheet03", enabled ? "GJ_autoOnBtn_001.png" : "GJ_autoOffBtn_001.png");
-        if (this._pauseAutoCheckpointBtn) {
-          this._pauseAutoCheckpointBtn.setTexture("GJ_GameSheet03", enabled ? "GJ_autoOnBtn_001.png" : "GJ_autoOffBtn_001.png");
-        }
       }
     });
     this._expandHitArea(this._autoCheckpointBtn, 2);
@@ -3938,22 +3939,6 @@ _buildPauseOverlay() {
     this._pauseContainer.add(_pausePractFg);
     this._pauseContainer.add(this.add.bitmapText(textureY, _pausePractBarY, "bigFont", _pausePractPct + "%", 30).setOrigin(0.5, 0.5).setScale(0.7));
     this._pauseContainer.add(this.add.bitmapText(textureY, _pausePractBarY - 40, "bigFont", "Practice Mode", 30).setOrigin(0.5, 0.5).setScale(0.78));
-
-    const _autoCpY = 305;
-    this._pauseAutoCheckpointBtn = this.add.image(textureY - 60, _autoCpY, "GJ_GameSheet03", this._practicedMode.autoCheckpointEnabled ? "GJ_autoOnBtn_001.png" : "GJ_autoOffBtn_001.png")
-      .setOrigin(0.5, 0.5)
-      .setInteractive()
-      .setScale(0.8);
-    this._makeBouncyButton(this._pauseAutoCheckpointBtn, 0.8, () => {
-      const enabled = this._practicedMode.toggleAutoCheckpoints();
-      this._pauseAutoCheckpointBtn.setTexture("GJ_GameSheet03", enabled ? "GJ_autoOnBtn_001.png" : "GJ_autoOffBtn_001.png");
-      if (this._autoCheckpointBtn) {
-        this._autoCheckpointBtn.setTexture("GJ_GameSheet03", enabled ? "GJ_autoOnBtn_001.png" : "GJ_autoOffBtn_001.png");
-      }
-    });
-    this._expandHitArea(this._pauseAutoCheckpointBtn, 2);
-    this._pauseContainer.add(this._pauseAutoCheckpointBtn);
-    this._pauseContainer.add(this.add.bitmapText(textureY + 10, _autoCpY, "bigFont", "Auto Checkpoints", 24).setOrigin(0, 0.5).setScale(0.7));
 
     const _0x4791ac = [
         { frame: this._practicedMode.practiceMode ? "GJ_normalBtn_001.png" : "GJ_practiceBtn_001.png", atlas: "GJ_GameSheet03", action: null },
