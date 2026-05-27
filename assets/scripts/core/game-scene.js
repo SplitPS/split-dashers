@@ -304,6 +304,10 @@ function _uploadLVL(level) {
       await showError("You must be logged in to do that.");
       return
     }
+    if (level.status !== "Verified") {
+      await showError("You must beat your level before uploading it.");
+      return
+    }
     showLoader("Uploading...")
     try {
     let name = level.levelName
@@ -7749,6 +7753,21 @@ _applyMirrorEffect() {
       this._practiceBestPercent = 100;
       localStorage.setItem("practiceBestPercent_" + (window.currentlevel[2] || "level_1"), 100);
       if (this._updatePracticeHUDBar) this._updatePracticeHUDBar();
+    }
+
+    if (!this._practicedMode.practiceMode) {
+      const levelId = window.currentlevel[2];
+      if (levelId) {
+        const rawData = localStorage.getItem("created_levels");
+        if (rawData) {
+          let createdLevels = JSON.parse(rawData);
+          const idx = createdLevels.findIndex(l => l.createdId === levelId);
+          if (idx !== -1) {
+            createdLevels[idx].status = "Verified";
+            localStorage.setItem("created_levels", JSON.stringify(createdLevels));
+          }
+        }
+      }
     }
 
     const _0x356782 = this._level.endXPos - this._cameraX;
