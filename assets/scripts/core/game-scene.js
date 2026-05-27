@@ -316,6 +316,13 @@ function _uploadLVL(level) {
     await customAlert("Uploaded Level!<br><br>id: " + lvl)
     level.levelId = lvl;
     level.levelName = name;
+    let createdLevels = JSON.parse(localStorage.getItem("created_levels") || "[]");
+    let idx = createdLevels.findIndex(l => l.createdId === level.createdId);
+    if (idx !== -1) {
+      createdLevels[idx].levelId = lvl;
+      localStorage.setItem("created_levels", JSON.stringify(createdLevels));
+    }
+    if (window._checkAchievements) window._checkAchievements();
     return level
     } catch (ex) {
       hideLoader();
@@ -642,6 +649,44 @@ class MacroBot {
   }
 }
 
+const _ACHIEVEMENTS = [
+  { id: "jump_100",    name: "First Steps",    desc: "Jump 100 times",       icon: 0 },
+  { id: "jump_1k",     name: "Keep Jumping",   desc: "Jump 1,000 times",      icon: 0 },
+  { id: "jump_10k",    name: "Jumping Pro",    desc: "Jump 10,000 times",     icon: 0 },
+  { id: "jump_100k",   name: "Jumping God",    desc: "Jump 100,000 times",    icon: 0 },
+  { id: "death_100",   name: "Beginner's Luck", desc: "Die 100 times",        icon: 1 },
+  { id: "death_1k",    name: "Persistent",     desc: "Die 1,000 times",       icon: 1 },
+  { id: "death_10k",   name: "Unstoppable",    desc: "Die 10,000 times",      icon: 1 },
+  { id: "attempt_100",  name: "Getting Started", desc: "100 attempts",         icon: 2 },
+  { id: "attempt_1k",   name: "Dedicated",      desc: "1,000 attempts",        icon: 2 },
+  { id: "attempt_10k",  name: "Committed",      desc: "10,000 attempts",       icon: 2 },
+  { id: "lvl_1",       name: "First Clear",    desc: "Complete 1 level",      icon: 3 },
+  { id: "lvl_5",       name: "Getting Good",   desc: "Complete 5 levels",     icon: 3 },
+  { id: "lvl_10",      name: "Level Hunter",   desc: "Complete 10 levels",    icon: 3 },
+  { id: "lvl_all",     name: "Completionist",  desc: "Complete all official levels", icon: 3 },
+  { id: "pct_50",      name: "Halfway There",  desc: "Reach 50% on a level",  icon: 4 },
+  { id: "pct_90",      name: "Almost There",   desc: "Reach 90% on a level",  icon: 4 },
+  { id: "pct_100",     name: "Perfectionist",  desc: "Get 100% on a level",   icon: 4 },
+  { id: "creator_1",   name: "Builder",        desc: "Create a level",         icon: 5 },
+  { id: "creator_5",   name: "Level Designer", desc: "Create 5 levels",        icon: 5 },
+  { id: "creator_10",  name: "Master Builder", desc: "Create 10 levels",       icon: 5 },
+  { id: "verified_1",  name: "Verifier",       desc: "Get a level verified",   icon: 5 },
+  { id: "upload_1",    name: "Publisher",      desc: "Upload a level",         icon: 5 },
+  { id: "practice_1",  name: "Practice Makes Perfect", desc: "Beat a level in practice mode", icon: 4 },
+  { id: "secret_early_death", name: "Oops!",   desc: "Die in the first 5 seconds", icon: 6, hidden: true },
+  { id: "secret_speedrun",    name: "Speedrunner",   desc: "Complete a level in under 30s", icon: 6, hidden: true },
+];
+
+const _ACHIEVEMENT_ICONS = [
+  ["GJ_GameSheet03", "GJ_jumpBtn_001.png"],
+  ["GJ_GameSheet03", "GJ_healthBar_001.png"],
+  ["GJ_GameSheet03", "GJ_playBtn2_001.png"],
+  ["GJ_GameSheet03", "GJ_achBtn_001.png"],
+  ["GJ_GameSheet03", "GJ_progressBar_001.png"],
+  ["GJ_GameSheet03", "GJ_editBtn_001.png"],
+  ["GJ_GameSheet03", "GJ_coin_001.png"],
+];
+
 class GameScene extends Phaser.Scene {
   constructor() {
     super({
@@ -750,6 +795,11 @@ class GameScene extends Phaser.Scene {
     this._totalJumps = parseInt(localStorage.getItem("gd_totalJumps") || "0", 10);
     this._totalDeaths = parseInt(localStorage.getItem("gd_totalDeaths") || "0", 10);
     window._completedLevels = parseInt(localStorage.getItem("gd_completedLevels") || "0", 10);
+    this._initAchievements();
+    window._checkAchievements = () => this._checkAchievements();
+    this._achieveEarlyDeath = false;
+    this._achieveSpeedrun = false;
+    this._startTime = null;
     this._playTime = 0;
     this._menuActive = true;
     this._slideIn = false;
@@ -850,9 +900,10 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     this._makeBouncyButton(this._menuStatsBtn, 1, () => {
       this._showStatsScreen();
     }, () => this._menuActive);
-    this._menuAchievementsBtn = this.add.image(centerX - 12, screenHeight - 90, "GJ_GameSheet03", "GJ_achBtn_001.png").setScrollFactor(0).setDepth(30).setInteractive().setTint(0x666666);
+    this._menuAchievementsBtn = this.add.image(centerX - 12, screenHeight - 90, "GJ_GameSheet03", "GJ_achBtn_001.png").setScrollFactor(0).setDepth(30).setInteractive();
     this._expandHitArea(this._menuAchievementsBtn, 1);
     this._makeBouncyButton(this._menuAchievementsBtn, 1, () => {
+      this._showAchievementsScreen();
     }, () => this._menuActive);
     this._menuNewgroundsBtn = this.add.image(centerX + 312, screenHeight - 90, "GJ_GameSheet03", "GJ_ngBtn_001.png").setScrollFactor(0).setDepth(30).setInteractive().setRotation(-Math.PI / 2).setFlipX(true);
     this._expandHitArea(this._menuNewgroundsBtn, 1);
@@ -975,7 +1026,8 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           .setScrollFactor(0).setDepth(104).setScale(btnScale);
         const isSearchButton  = frame === "GJ_searchBtn_001.png";
         const isFeaturedButton = frame === "GJ_featuredBtn_001.png";
-        const isEditorButton = frame === "GJ_createBtn_001.png"; 
+        const isEditorButton = frame === "GJ_createBtn_001.png";
+        const isHighscoreButton = frame === "GJ_highscoreBtn_001.png";
         if (isSearchButton) {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
@@ -993,6 +1045,12 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           this._makeBouncyButton(btn, btnScale, () => {
             this._closeCreatorMenu(true);
             this._openEditorMenu();
+          }, () => true);
+        } else if (isHighscoreButton) {
+          btn.setInteractive();
+          this._makeBouncyButton(btn, btnScale, () => {
+            this._closeCreatorMenu(true);
+            this._showLeaderboardScreen();
           }, () => true);
         } else {
           btn.setTint(0x666666);
@@ -1179,6 +1237,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
 
             createdLevels.push(newLevel);
             localStorage.setItem("created_levels", JSON.stringify(createdLevels));
+            this._checkAchievements();
 
             this._closeEditorMenu();
             this._openLevelView(newLevel);
@@ -5030,6 +5089,7 @@ buildAccountInfo() {
     if (!this._menuActive) {
       return;
     }
+    this._startTime = Date.now();
     
     // fixed loading saved new best from local storage
     this._bestPercent = parseFloat(localStorage.getItem("bestPercent_" + (window.currentlevel[2] || "level_1")) || "0");
@@ -5287,6 +5347,7 @@ buildAccountInfo() {
     this._levelJumps = 0;
     this._attempts++;
     localStorage.setItem("gd_totalAttempts", this._attempts);
+    this._checkAchievements();
     this._attemptsLabel.setText("Attempt " + this._levelAttempts);
     this._attemptsLabel.setVisible(true);
     this._positionAttemptsLabel();
@@ -5334,11 +5395,13 @@ buildAccountInfo() {
         this._totalJumps++;
         this._levelJumps++;
         localStorage.setItem("gd_totalJumps", this._totalJumps);
+        this._checkAchievements();
       } else if (this._state.isUfo) {
         this._player.updateJump(0);
         this._totalJumps++;
         this._levelJumps++;
         localStorage.setItem("gd_totalJumps", this._totalJumps);
+        this._checkAchievements();
       }
     }
 
@@ -5504,7 +5567,9 @@ buildAccountInfo() {
   _restartLevel() {
     this._attempts++;
     localStorage.setItem("gd_totalAttempts", this._attempts);
+    this._checkAchievements();
     this._levelAttempts++;
+    this._startTime = Date.now();
     this._levelJumps = 0;
     const _0x2ba78a = this._cameraX;
     if (this._levelWon && this._practicedMode.practiceMode) {
@@ -6138,6 +6203,10 @@ buildAccountInfo() {
         this._deathSoundPlayed = true;
         this._totalDeaths++;
         localStorage.setItem("gd_totalDeaths", this._totalDeaths);
+        if (this._startTime && Date.now() - this._startTime < 5000 && !this._practicedMode.practiceMode) {
+          this._achieveEarlyDeath = true;
+        }
+        this._checkAchievements();
       }
       if (!this._newBestShown) {
         this._newBestShown = true;
@@ -7559,6 +7628,9 @@ _saveEditorLevel = () => {
     if (levelIndex !== -1) {
         createdLevels[levelIndex].levelString = newLevelString;
         createdLevels[levelIndex].lastModified = Date.now();
+        if (createdLevels[levelIndex].status === "Verified") {
+            createdLevels[levelIndex].status = "Unverified";
+        }
         
         localStorage.setItem("created_levels", JSON.stringify(createdLevels));
         window._onlineLevelString = createdLevels[levelIndex].levelString;
@@ -7749,11 +7821,15 @@ _applyMirrorEffect() {
         window._completedLevels = completedSet.length;
         localStorage.setItem("gd_completedLevels", window._completedLevels);
       }
+      if (this._startTime && (Date.now() - this._startTime < 30000)) {
+        this._achieveSpeedrun = true;
+      }
     } else {
       this._practiceBestPercent = 100;
       localStorage.setItem("practiceBestPercent_" + (window.currentlevel[2] || "level_1"), 100);
       if (this._updatePracticeHUDBar) this._updatePracticeHUDBar();
     }
+    this._checkAchievements();
 
     if (!this._practicedMode.practiceMode) {
       const levelId = window.currentlevel[2];
@@ -8294,6 +8370,342 @@ _applyMirrorEffect() {
       },
       onComplete: _0x272eb1
     });
+  }
+  _initAchievements() {
+    const raw = localStorage.getItem("gd_achievements");
+    this._achievements = raw ? JSON.parse(raw) : {};
+    this._achieveNotifQueue = [];
+    this._achieveShowingNotif = false;
+  }
+  _getAchieveStats() {
+    const lvls = JSON.parse(localStorage.getItem("created_levels") || "[]");
+    return {
+      jumps: this._totalJumps || 0,
+      deaths: this._totalDeaths || 0,
+      attempts: this._attempts || 0,
+      completed: window._completedLevels || 0,
+      createdCount: lvls.length,
+      verifiedCount: lvls.filter(l => l.status === "Verified").length,
+      uploadedCount: lvls.filter(l => l.levelId && l.levelId !== "NA" && l.levelId !== null).length,
+    };
+  }
+  _checkAchievements() {
+    const stats = this._getAchieveStats();
+    for (const ach of _ACHIEVEMENTS) {
+      if (this._achievements[ach.id]) continue;
+      let unlocked = false;
+      switch (ach.id) {
+        case "jump_100": unlocked = stats.jumps >= 100; break;
+        case "jump_1k": unlocked = stats.jumps >= 1000; break;
+        case "jump_10k": unlocked = stats.jumps >= 10000; break;
+        case "jump_100k": unlocked = stats.jumps >= 100000; break;
+        case "death_100": unlocked = stats.deaths >= 100; break;
+        case "death_1k": unlocked = stats.deaths >= 1000; break;
+        case "death_10k": unlocked = stats.deaths >= 10000; break;
+        case "attempt_100": unlocked = stats.attempts >= 100; break;
+        case "attempt_1k": unlocked = stats.attempts >= 1000; break;
+        case "attempt_10k": unlocked = stats.attempts >= 10000; break;
+        case "lvl_1": unlocked = stats.completed >= 1; break;
+        case "lvl_5": unlocked = stats.completed >= 5; break;
+        case "lvl_10": unlocked = stats.completed >= 10; break;
+        case "lvl_all": unlocked = this._allOfficialsCompleted(); break;
+        case "creator_1": unlocked = stats.createdCount >= 1; break;
+        case "creator_5": unlocked = stats.createdCount >= 5; break;
+        case "creator_10": unlocked = stats.createdCount >= 10; break;
+        case "verified_1": unlocked = stats.verifiedCount >= 1; break;
+        case "upload_1": unlocked = stats.uploadedCount >= 1; break;
+        case "pct_50": unlocked = this._achievePctBest() >= 50; break;
+        case "pct_90": unlocked = this._achievePctBest() >= 90; break;
+        case "pct_100": unlocked = this._achievePctBest() >= 100; break;
+        case "practice_1": unlocked = this._achievePracticeBest() >= 100; break;
+        case "secret_early_death": unlocked = this._achieveEarlyDeath; break;
+        case "secret_speedrun": unlocked = this._achieveSpeedrun; break;
+      }
+      if (unlocked) this._unlockAchievement(ach.id);
+    }
+  }
+  _allOfficialsCompleted() {
+    const set = JSON.parse(localStorage.getItem("gd_completedSet") || "[]");
+    const officialCount = window.allLevels ? window.allLevels.length : 9;
+    let count = 0;
+    for (const id of set) {
+      if (id.startsWith("level_")) count++;
+    }
+    return count >= officialCount;
+  }
+  _achievePctBest() {
+    let best = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("bestPercent_")) {
+        const val = parseInt(localStorage.getItem(key));
+        if (val > best) best = val;
+      }
+    }
+    return best;
+  }
+  _achievePracticeBest() {
+    let best = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("practiceBestPercent_")) {
+        const val = parseInt(localStorage.getItem(key));
+        if (val > best) best = val;
+      }
+    }
+    return best;
+  }
+  _unlockAchievement(id) {
+    if (this._achievements[id]) return;
+    this._achievements[id] = Date.now();
+    localStorage.setItem("gd_achievements", JSON.stringify(this._achievements));
+    const ach = _ACHIEVEMENTS.find(a => a.id === id);
+    if (ach) {
+      this._achieveNotifQueue.push(ach);
+      this._showNextAchieveNotif();
+    }
+  }
+  _showNextAchieveNotif() {
+    if (this._achieveShowingNotif || this._achieveNotifQueue.length === 0) return;
+    this._achieveShowingNotif = true;
+    const ach = this._achieveNotifQueue.shift();
+    const sw = screenWidth;
+    const notif = this.add.container(sw / 2, -100).setScrollFactor(0).setDepth(10000);
+    const bg = this.add.rectangle(0, 0, 400, 80, 0x000000, 0.85).setStrokeStyle(2, 0xffd700);
+    const icon = this.add.image(-170, 0, ..._ACHIEVEMENT_ICONS[ach.icon]).setScale(0.8);
+    const txt1 = this.add.bitmapText(-130, -18, "goldFont", "Achievement Unlocked!", 18).setOrigin(0, 0.5);
+    const txt2 = this.add.bitmapText(-130, 14, "bigFont", ach.name, 28).setOrigin(0, 0.5);
+    notif.add([bg, icon, txt1, txt2]);
+    this.tweens.add({
+      targets: notif,
+      y: 80,
+      duration: 400,
+      ease: "Back.Out",
+      onComplete: () => {
+        this.time.delayedCall(2500, () => {
+          this.tweens.add({
+            targets: notif,
+            y: -120,
+            alpha: 0,
+            duration: 300,
+            onComplete: () => {
+              notif.destroy();
+              this._achieveShowingNotif = false;
+              this._showNextAchieveNotif();
+            }
+          });
+        });
+      }
+    });
+  }
+  _showAchievementsScreen() {
+    if (this._achievementsPopup) return;
+    const sw = screenWidth;
+    const sh = screenHeight;
+    const cx = sw / 2;
+    const blocked = this._menuActive || (!this._menuActive && !this._paused);
+
+    if (!this._achievements) this._initAchievements();
+
+    this._achievementsPopup = true;
+    const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(200).setInteractive();
+    const overlay = this.add.graphics().setScrollFactor(0).setDepth(201);
+    const gs = 80;
+    for (let gi = 0; gi < gs; gi++) {
+      const t = gi / (gs - 1);
+      const r = Math.round(0x3a + (0x1a - 0x3a) * t);
+      const g = Math.round(0x3a + (0x1a - 0x3a) * t);
+      const b = Math.round(0x3a + (0x1a - 0x3a) * t);
+      overlay.fillStyle((r << 16) | (g << 8) | b, 1);
+      overlay.fillRect(0, Math.floor(gi * sh / gs), sw, Math.ceil(sh / gs) + 1);
+    }
+
+    const container = this.add.container(0, 0).setScrollFactor(0).setDepth(202);
+    const tw = 712, th = 500;
+    const tx = (sw - tw) / 2;
+    const ty = 70;
+    const headerH = 60;
+    const listH = th - headerH - 20;
+    container.add(this.add.graphics().fillStyle(0x8b5e3c, 1).fillRoundedRect(tx, ty, tw, th, 16));
+    container.add(this.add.graphics().fillStyle(0x6b3f1f, 1).fillRoundedRect(tx + 4, ty + 4, tw - 8, headerH - 4, 12));
+    container.add(this.add.bitmapText(cx, ty + headerH / 2, "bigFont", "Achievements", 40).setOrigin(0.5));
+
+    const backBtn = this.add.image(50, 40, "GJ_GameSheet03", "GJ_arrow_03_001.png").setScrollFactor(0).setDepth(204).setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive();
+    this._makeBouncyButton(backBtn, 1, () => this._hideAchievementsScreen());
+
+    const achObjects = [overlay, blocker, container, backBtn];
+
+    const maskShape = this.add.graphics().fillStyle(0xffffff).fillRect(tx + 4, ty + headerH + 4, tw - 8, listH - 8).setVisible(false);
+    const mask = maskShape.createGeometryMask();
+    const listContainer = this.add.container(0, 0);
+    listContainer.setMask(mask);
+    container.add(listContainer);
+
+    const sorted = [..._ACHIEVEMENTS].sort((a, b) => {
+      const aUnlocked = !!this._achievements[a.id];
+      const bUnlocked = !!this._achievements[b.id];
+      if (aUnlocked !== bUnlocked) return aUnlocked ? -1 : 1;
+      return a.id.localeCompare(b.id);
+    });
+
+    const itemH = 64;
+    sorted.forEach((ach, i) => {
+      const unlocked = !!this._achievements[ach.id];
+      const iy = ty + headerH + 10 + i * itemH;
+      if (iy > ty + th - itemH) return;
+      const stripe = this.add.rectangle(cx, iy + itemH / 2, tw - 16, itemH - 2, unlocked ? 0x5a8c3c : 0x4a3030, 0.8);
+      listContainer.add(stripe);
+      const icon = this.add.image(tx + 34, iy + itemH / 2, ..._ACHIEVEMENT_ICONS[ach.icon]).setScale(0.55);
+      if (!unlocked) icon.setTint(0x333333);
+      listContainer.add(icon);
+      const nameTxt = this.add.bitmapText(tx + 70, iy + 10, "bigFont", ach.name, unlocked ? 26 : 22).setOrigin(0, 0);
+      if (!unlocked) nameTxt.setTint(0x666666);
+      listContainer.add(nameTxt);
+      const descTxt = this.add.bitmapText(tx + 70, iy + 38, "bigFont", ach.desc, 16).setOrigin(0, 0);
+      if (!unlocked) descTxt.setTint(0x555555);
+      listContainer.add(descTxt);
+      if (unlocked) {
+        const time = this._achievements[ach.id];
+        const d = new Date(time);
+        const dateStr = d.toLocaleDateString();
+        const dateTxt = this.add.bitmapText(tx + tw - 100, iy + itemH / 2, "goldFont", dateStr, 16).setOrigin(0.5);
+        listContainer.add(dateTxt);
+      } else if (ach.hidden) {
+        const hiddenTxt = this.add.bitmapText(tx + 70, iy + 10, "bigFont", "???", 26).setOrigin(0, 0).setTint(0x444444);
+        listContainer.add(hiddenTxt);
+        const hiddenDesc = this.add.bitmapText(tx + 70, iy + 38, "bigFont", "Keep playing to discover", 16).setOrigin(0, 0).setTint(0x444444);
+        listContainer.add(hiddenDesc);
+      }
+    });
+
+    this._achievementUI = achObjects;
+  }
+  _hideAchievementsScreen() {
+    if (!this._achievementUI) return;
+    for (const obj of this._achievementUI) obj.destroy();
+    this._achievementUI = null;
+    this._achievementsPopup = false;
+  }
+  _showLeaderboardScreen() {
+    if (this._leaderboardPopup) return;
+    this._leaderboardPopup = true;
+
+    const sw = screenWidth;
+    const sh = screenHeight;
+    const cx = sw / 2;
+    const tw = 712, th = 520;
+    const tx = (sw - tw) / 2;
+    const ty = 60;
+
+    const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(200).setInteractive();
+    const overlay = this.add.graphics().setScrollFactor(0).setDepth(201);
+    for (let gi = 0; gi < 80; gi++) {
+      const t = gi / 79;
+      const r = Math.round(0x1a + (0x0a - 0x1a) * t);
+      const g = Math.round(0x2a + (0x1a - 0x2a) * t);
+      const b = Math.round(0x4a + (0x3a - 0x4a) * t);
+      overlay.fillStyle((r << 16) | (g << 8) | b, 1);
+      overlay.fillRect(0, Math.floor(gi * sh / 80), sw, Math.ceil(sh / 80) + 1);
+    }
+
+    const container = this.add.container(0, 0).setScrollFactor(0).setDepth(202);
+    const headerBg = this.add.graphics().fillStyle(0x6b3f1f, 1).fillRoundedRect(tx, ty, tw, 60, 12);
+    container.add(headerBg);
+    container.add(this.add.bitmapText(cx, ty + 30, "bigFont", "Leaderboard", 40).setOrigin(0.5));
+    container.add(this.add.graphics().fillStyle(0x8b5e3c, 1).fillRoundedRect(tx, ty + 4, tw, th - 4, 12));
+
+    const backBtn = this.add.image(50, 40, "GJ_GameSheet03", "GJ_arrow_03_001.png")
+      .setScrollFactor(0).setDepth(204).setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive();
+    this._makeBouncyButton(backBtn, 1, () => {
+      this._hideLeaderboardScreen();
+    });
+
+    const loadingTxt = this.add.bitmapText(cx, sh / 2, "bigFont", "Loading...", 30).setOrigin(0.5).setScrollFactor(0).setDepth(205);
+    const lbObjects = [overlay, blocker, container, backBtn, loadingTxt];
+    this._leaderboardUI = lbObjects;
+
+    const maskShape = this.add.graphics().fillStyle(0xffffff).fillRect(tx + 4, ty + 64, tw - 8, th - 68).setVisible(false);
+    const mask = maskShape.createGeometryMask();
+    const listContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(203);
+    listContainer.setMask(mask);
+    container.add(listContainer);
+    lbObjects.push(maskShape);
+
+    (async () => {
+      try {
+        const data = new URLSearchParams({
+          secret: "Wmfd2893gb7",
+          type: "top",
+          count: "100"
+        });
+        const aid = localStorage.getItem("aid") || "";
+        const gjp2 = localStorage.getItem("gjp2") || "";
+        if (aid && gjp2) {
+          data.set("accountID", aid);
+          data.set("gjp2", gjp2);
+        }
+        const res = await fetch(window._gdProxyUrl + "/getGJScores20.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: data.toString()
+        });
+        const text = await res.text();
+        loadingTxt.destroy();
+
+        if (!text || text === "-1") {
+          listContainer.add(this.add.bitmapText(cx, ty + 100, "bigFont", "Failed to load leaderboard", 22).setOrigin(0.5));
+          return;
+        }
+
+        const entries = text.split("|").filter(Boolean);
+        const rowH = 52;
+
+        entries.forEach((entry, i) => {
+          const parts = entry.split(":");
+          const userObj = {};
+          for (let j = 0; j + 1 < parts.length; j += 2) {
+            userObj[parts[j]] = parts[j + 1];
+          }
+          const rank = i + 1;
+          const name = userObj["1"] || "Unknown";
+          const stars = userObj["3"] || "0";
+          const coins = userObj["13"] || "0";
+          const userCoins = userObj["17"] || "0";
+          const demons = userObj["4"] || "0";
+          const cp = userObj["8"] || "0";
+          const iconId = userObj["9"] || "1";
+          const iconType = userObj["14"] || "0";
+
+          const iy = ty + 68 + i * rowH;
+          if (iy > ty + th - rowH) return;
+
+          const bg = this.add.rectangle(cx, iy + rowH / 2, tw - 16, rowH - 2, i % 2 === 0 ? 0x4a3525 : 0x3a2a1a, 0.8);
+          listContainer.add(bg);
+
+          const rankTxt = this.add.bitmapText(tx + 16, iy + rowH / 2, "goldFont", "#" + rank, rank <= 3 ? 24 : 20).setOrigin(0, 0.5);
+          if (rank === 1) rankTxt.setTint(0xffd700);
+          else if (rank === 2) rankTxt.setTint(0xc0c0c0);
+          else if (rank === 3) rankTxt.setTint(0xcd7f32);
+          listContainer.add(rankTxt);
+
+          const nameTxt = this.add.bitmapText(tx + 70, iy + rowH / 2, "bigFont", name, 22).setOrigin(0, 0.5);
+          listContainer.add(nameTxt);
+
+          const infoStr = stars + "* | " + demons + " demons | " + cp + " CP";
+          const infoTxt = this.add.bitmapText(tx + tw - 100, iy + rowH / 2, "goldFont", infoStr, 16).setOrigin(0.5);
+          listContainer.add(infoTxt);
+        });
+      } catch (e) {
+        loadingTxt.destroy();
+        listContainer.add(this.add.bitmapText(cx, ty + 100, "bigFont", "Error loading leaderboard", 22).setOrigin(0.5));
+      }
+    })();
+  }
+  _hideLeaderboardScreen() {
+    if (!this._leaderboardUI) return;
+    for (const obj of this._leaderboardUI) obj.destroy();
+    this._leaderboardUI = null;
+    this._leaderboardPopup = false;
   }
   _showStatsScreen() {
     if (this._pauseBtn) {
