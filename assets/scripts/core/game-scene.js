@@ -1786,9 +1786,10 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         }
       };
       const _doSearchInner = async (levelId) => {
-        showLoader("Searching");
+        console.log("Downloading");
+        showLoader("Downloading level");
         const PROXY_BASE = (window._gdProxyUrl || "").replace(/\/$/, "");
-        if (!PROXY_BASE) return;
+        if (!PROXY_BASE) hideLoader();showError("PROXY_BASE is not set, please create a github issue.");return;
         const formBody = `levelID=${levelId}&secret=Wmfd2893gb7`;
         const res = await fetch(`${PROXY_BASE}/downloadGJLevel22.php`, {
           method: "POST",
