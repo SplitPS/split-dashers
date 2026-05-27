@@ -1791,11 +1791,13 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const PROXY_BASE = (window._gdProxyUrl || "").replace(/\/$/, "");
         if (!PROXY_BASE) hideLoader();showError("PROXY_BASE is not set, please create a github issue.");return;
         const formBody = `levelID=${levelId}&secret=Wmfd2893gb7`;
+        console.log("fetch");
         const res = await fetch(`${PROXY_BASE}/downloadGJLevel22.php`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: formBody
         });
+        console.log("fetch done");
         if (!res.ok) hideLoader();throw new Error(`Proxy returned ${res.status}`);
         const rawResponse = await res.text();
         if (!rawResponse || rawResponse === "-1" || !rawResponse.includes(":")) {
@@ -1819,7 +1821,9 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         window.currentlevel[0] = songKey;
         window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
         hideLoader();
+        console.log("iscustomsong?");
         if (isCustomSong) {
+          hideLoader();
           showLoader("Downloading Song");
           window._onlineSongBuffer = null; 
           window._onlineSongKey    = null;
