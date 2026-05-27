@@ -449,9 +449,6 @@ class PracticeMode {
     this.checkpoints = [];
     this.practiceMode = false;
     this.checkpointSprites = [];
-    this.autoCheckpointEnabled = false;
-    this.lastAutoCheckpointPct = -1;
-    this.autoCheckpointInterval = 10;
   }
   togglePracticeMode() {
     this.practiceMode = !this.practiceMode;
@@ -459,11 +456,6 @@ class PracticeMode {
       this.clearCheckpoints();
     }
     return this.practiceMode;
-  }
-  toggleAutoCheckpoints() {
-    this.autoCheckpointEnabled = !this.autoCheckpointEnabled;
-    this.lastAutoCheckpointPct = -1;
-    return this.autoCheckpointEnabled;
   }
   saveCheckpoint(playerState, playerWorldX, cameraX, scene) {
     if (!this.practiceMode) return false;
@@ -546,7 +538,6 @@ class PracticeMode {
       }
     }
     this.checkpointSprites = [];
-    this.lastAutoCheckpointPct = -1;
   }
   loadLastCheckpoint() {
     if (this.checkpoints.length > 0) {
@@ -3739,18 +3730,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       }
     }); 
     this._expandHitArea(this._clearCheckpointBtn, 1.5);
-    this._autoCheckpointBtn = this.add.image(-135, 0, "GJ_GameSheet03", "GJ_autoOffBtn_001.png")
-      .setOrigin(0.5, 0.5)
-      .setInteractive()
-      .setScale(0.8);
-    this._makeBouncyButton(this._autoCheckpointBtn, 0.8, () => {
-      if (this._practicedMode.practiceMode) {
-        const enabled = this._practicedMode.toggleAutoCheckpoints();
-        this._autoCheckpointBtn.setTexture("GJ_GameSheet03", enabled ? "GJ_autoOnBtn_001.png" : "GJ_autoOffBtn_001.png");
-      }
-    });
-    this._expandHitArea(this._autoCheckpointBtn, 2);
-    this._checkpointBtnContainer.add([this._checkpointBtn, this._clearCheckpointBtn, this._autoCheckpointBtn]);
+    this._checkpointBtnContainer.add([this._checkpointBtn, this._clearCheckpointBtn]);
     this._fpsText = this.add.text(screenWidth - 20, 10, "", {
       fontSize: "28px",
       fill: "#ffffff",
@@ -5919,8 +5899,6 @@ buildAccountInfo() {
     if (this._macroBot?.playing == true){
       this._macroBot?.rollbackPlayback(this._physicsFrame);
     }
-    const checkpointPct = (checkpoint.x / this._level.endXPos) * 100;
-    this._practicedMode.lastAutoCheckpointPct = Math.floor(checkpointPct / this._practicedMode.autoCheckpointInterval) * this._practicedMode.autoCheckpointInterval;
   }
   _onFullscreenChange(_0x310c5b) {
     if (!_0x310c5b) {
@@ -6054,14 +6032,6 @@ buildAccountInfo() {
     }
     let rawPercent = (this._playerWorldX / this._level.endXPos) * 100;
     rawPercent = Math.min(100, Math.max(0, rawPercent));
-    if (this._practicedMode.practiceMode && this._practicedMode.autoCheckpointEnabled && !this._state.isDead && !this._levelWon) {
-      const interval = this._practicedMode.autoCheckpointInterval;
-      const checkpointPct = Math.floor(rawPercent / interval) * interval;
-      if (checkpointPct > this._practicedMode.lastAutoCheckpointPct && checkpointPct > 0) {
-        this._practicedMode.saveCheckpoint(this._state, this._playerWorldX, this._cameraX, this);
-        this._practicedMode.lastAutoCheckpointPct = checkpointPct;
-      }
-    }
     let displayValue;
     if (this._levelWon) {
       const p = this._interpolatedPercent || 0;
