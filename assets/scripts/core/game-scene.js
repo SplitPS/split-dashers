@@ -2073,7 +2073,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         _doSearchInner(window.levelID);
       }
       window.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") _doSearch();
+        if (e.key === "Enter" && inputFocused) _doSearch();
         e.stopPropagation();
       });
       window.addEventListener("keyup", (e) => e.stopPropagation());
