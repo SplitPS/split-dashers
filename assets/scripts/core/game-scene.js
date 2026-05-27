@@ -332,6 +332,117 @@ if (window.location.href.startsWith("file://")) {
   throw new Error("file:// cannot be used.");
 }
 
+const PLAYALEVELORSMTHFUCKIDK = async (levelId, scene) => {
+  console.log("Downloading");
+  showLoader("Downloading level");
+  window._gdProxyUrl = "https://tails1154.com:9995/https://split.ps.fhgdps.com"
+  const PROXY_BASE = window._gdProxyUrl; //(window._gdProxyUrl || "").replace(/\/$/, "");
+  // if (!PROXY_BASE) hideLoader();showError("PROXY_BASE is not set, please create a github issue.");return;
+  const formBody = `levelID=${levelId}&secret=Wmfd2893gb7`;
+  console.log("fetch");
+  const res = await fetch(`${PROXY_BASE}/downloadGJLevel22.php`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formBody
+  });
+  console.log("fetch done");
+  if (!res.ok) {
+    hideLoader()
+    throw new Error(`Proxy returned ${res.status}`);
+  }
+  const rawResponse = await res.text();
+  if (!rawResponse || rawResponse === "-1" || !rawResponse.includes(":")) {
+    hideLoader();
+    return;
+  }
+  const gdMap = {};
+  const _gdMatches = [...rawResponse.matchAll(/(?:^|:)(\d+):/g)];
+  for (let i = 0; i < _gdMatches.length; i++) {
+    const valueStart = _gdMatches[i].index + _gdMatches[i][0].length;
+    const valueEnd   = i + 1 < _gdMatches.length ? _gdMatches[i + 1].index : rawResponse.length;
+    gdMap[_gdMatches[i][1]] = rawResponse.slice(valueStart, valueEnd);
+  }
+  const levelString   = gdMap["4"] || null;
+  const levelName     = gdMap["2"] || "Online Level";
+  const levelIdParsed = gdMap["1"] || levelId;
+  const songIdRaw     = (gdMap["35"] || "").trim();
+  const isCustomSong  = !!songIdRaw && songIdRaw !== "0";
+  const officialSongId = gdMap["12"] || "0";
+  const songKey = isCustomSong ? `ng_song_${songIdRaw}` : window.allLevels[officialSongId][0];
+  window.currentlevel[0] = songKey;
+  window._onlineSongOffset = parseFloat(gdMap["45"] || "0") || 0;
+  hideLoader();
+  console.log("iscustomsong?");
+  if (isCustomSong) {
+    hideLoader();
+    showLoader("Downloading Song");
+    window._onlineSongBuffer = null;
+    window._onlineSongKey    = null;
+    try {
+      const ngRes = await fetch(`${PROXY_BASE}/getGJSongInfo.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `songID=${songIdRaw}&secret=Wmfd2893gb7`
+      });
+      const ngText = ngRes.ok ? await ngRes.text() : "-1";
+      if (ngText && ngText !== "-1") {
+        const ngParts = ngText.split("~|~");
+        const ngMap = {};
+        for (let i = 0; i + 1 < ngParts.length; i += 2) ngMap[ngParts[i]] = ngParts[i + 1];
+        const rawUrl  = (ngMap["10"] || "").trim();
+        const songUrl = decodeURIComponent(rawUrl);
+        const songArtist = (ngMap["4"]  || "Unknown").replace(/:$/, "").trim();
+        const songTitle  = (ngMap["2"]  || `Song #${songIdRaw}`).replace(/:$/, "").trim();
+        if (songUrl) {
+          const audioCtx = scene.sound.context;
+          if (audioCtx.state === "suspended") await audioCtx.resume();
+          const proxiedUrl = `https://tails1154.com:9995/${songUrl}`;
+          const audioRes = await fetch(proxiedUrl);
+          if (!audioRes.ok) throw new Error(`audio proxy returned ${audioRes.status}`);
+          const arrayBuf = await audioRes.arrayBuffer();
+          const decoded  = await audioCtx.decodeAudioData(arrayBuf);
+          window._onlineSongBuffer = decoded;
+          window._onlineSongKey    = songKey;
+          window._onlineSongTitle  = songTitle;
+          window._onlineSongArtist = songArtist;
+          hideLoader();
+        }
+      }
+    } catch (songErr) {
+      hideLoader();
+    }
+  } else {
+    hideLoader();
+    window._onlineSongBuffer = null;
+    window._onlineSongKey    = null;
+    window._onlineSongArtist = null;
+  }
+  window._onlineLevelString = levelString;
+  window._onlineLevelName   = levelName;
+  window._onlineLevelId     = "online_" + levelIdParsed;
+  scene.registry.set("autoStartGame", true);
+  window.currentlevel = [
+    songKey,
+    levelName,
+    window._onlineLevelId,
+    [window._onlineSongArtist || "Unknown"]
+  ];
+  scene.time.delayedCall(600, () => {
+//    htmlInput.remove();
+ /*   window.removeEventListener("resize", _repositionInput);*/
+ // // // // //   scene._closeSearchMenu(true);
+    // scene._closeLevelSelect && scene._closeLevelSelect(true);
+    // const flash = scene.add.graphics().setScrollFactor(0).setDepth(300).setAlpha(0);
+    // flash.fillStyle(0x000000, 1);
+    // flash.fillRect(0, 0, sw, sh);
+    // scene.tweens.add({
+      // targets: flash, alpha: 1, duration: 250, ease: "Linear",
+      scene.scene.restart();
+      // onComplete: () => scene.scene.restart()
+    // });
+  });
+};
+
 
 class PracticeMode {
   constructor() {
@@ -991,7 +1102,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             let id = txt.split("|")[0] // yo splitgdps reference
             hideLoader();
             console.log(id);
-            await window.searchIn(-1); // ignore function name kthx
+            await PLAYALEVELORSMTHFUCKIDK(-1, this);
             })();
           })
         } else {
@@ -1926,7 +2037,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           });
         });
       };
-      window.searchIn = _doSearchInner
       this._searchOverlayObjects.push(overlay, blocker, backBtn);
       if (window.levelID && !window.alreadydownloaded) { // if there's an ID parameter, load it directly
         window.alreadydownloaded = true;
