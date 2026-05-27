@@ -448,8 +448,7 @@ class PracticeMode {
     this.practiceMode = false;
     this.checkpointSprites = [];
     this.autoCheckpointEnabled = false;
-    this.lastAutoCheckpointPct = -1;
-    this.autoCheckpointInterval = 10;
+    this.lastAutoCheckpointTime = -1;
   }
   togglePracticeMode() {
     this.practiceMode = !this.practiceMode;
@@ -460,7 +459,7 @@ class PracticeMode {
   }
   toggleAutoCheckpoints() {
     this.autoCheckpointEnabled = !this.autoCheckpointEnabled;
-    this.lastAutoCheckpointPct = -1;
+    this.lastAutoCheckpointTime = -1;
     return this.autoCheckpointEnabled;
   }
   saveCheckpoint(playerState, playerWorldX, cameraX, scene) {
@@ -544,7 +543,7 @@ class PracticeMode {
       }
     }
     this.checkpointSprites = [];
-    this.lastAutoCheckpointPct = -1;
+    this.lastAutoCheckpointTime = -1;
   }
   loadLastCheckpoint() {
     if (this.checkpoints.length > 0) {
@@ -5643,6 +5642,8 @@ buildAccountInfo() {
     this._hadNewBest = false;
     this._levelWon = false;
     this._endCameraOverride = false;
+    this._autoCheckpointLandTime = 0;
+    this._playerOnGroundPrev = false;
     this._endCamTween = null;
     this._spaceWasDown = false;
     this._physicsFrame = 0;
@@ -5934,8 +5935,7 @@ buildAccountInfo() {
     if (this._macroBot?.playing == true){
       this._macroBot?.rollbackPlayback(this._physicsFrame);
     }
-    const checkpointPct = (checkpoint.x / this._level.endXPos) * 100;
-    this._practicedMode.lastAutoCheckpointPct = Math.floor(checkpointPct / this._practicedMode.autoCheckpointInterval) * this._practicedMode.autoCheckpointInterval;
+    this._practicedMode.lastAutoCheckpointTime = this.time.now;
   }
   _onFullscreenChange(_0x310c5b) {
     if (!_0x310c5b) {
@@ -6070,13 +6070,15 @@ buildAccountInfo() {
     let rawPercent = (this._playerWorldX / this._level.endXPos) * 100;
     rawPercent = Math.min(100, Math.max(0, rawPercent));
     if (this._practicedMode.practiceMode && this._practicedMode.autoCheckpointEnabled && !this._state.isDead && !this._levelWon) {
-      const interval = this._practicedMode.autoCheckpointInterval;
-      const checkpointPct = Math.floor(rawPercent / interval) * interval;
-      if (checkpointPct > this._practicedMode.lastAutoCheckpointPct && checkpointPct > 0) {
+      if (this._state.onGround && !this._playerOnGroundPrev) {
+        this._autoCheckpointLandTime = this.time.now;
+      }
+      if (this._state.onGround && this._autoCheckpointLandTime > this._practicedMode.lastAutoCheckpointTime && this.time.now - this._autoCheckpointLandTime >= 500) {
         this._practicedMode.saveCheckpoint(this._state, this._playerWorldX, this._cameraX, this);
-        this._practicedMode.lastAutoCheckpointPct = checkpointPct;
+        this._practicedMode.lastAutoCheckpointTime = this.time.now;
       }
     }
+    this._playerOnGroundPrev = this._state.onGround;
     let displayValue;
     if (this._levelWon) {
       const p = this._interpolatedPercent || 0;
