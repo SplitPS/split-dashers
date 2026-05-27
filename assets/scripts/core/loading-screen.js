@@ -130,8 +130,7 @@ class BootScene extends Phaser.Scene {
       "hello dragon guy",
       "idk what to put here",
       "fridge",
-      "webtv",
-      "you're only getting rates if they're rate worhty -- Fridge 2026"
+      "webtv"
     ];
     const sliderOriginX = cx - 105;
     const sliderOriginY = cy + 110;
