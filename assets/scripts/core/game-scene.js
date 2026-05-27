@@ -1070,7 +1070,11 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             this._showLeaderboardScreen();
           }, () => true);
         } else if (frame === "GJ_versusBtn_001.png") {
-          btn.setTint(0x666666);
+          btn.setInteractive();
+          this._makeBouncyButton(btn, btnScale, () => {
+            this._closeCreatorMenu(true);
+            this._openVersusMenu();
+          }, () => true);
         } else if (isDailyButton) {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
@@ -2390,12 +2394,15 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         this._searchOverlayObjects.push(loadingBg, loadingText);
         _doSearchInner(window.levelID);
       }
-      window.addEventListener("keydown", (e) => {
+      this._searchKeydown = (e) => {
         if (e.key === "Enter" && inputFocused) _doSearch();
         e.stopPropagation();
-      });
-      window.addEventListener("keyup", (e) => e.stopPropagation());
-      window.addEventListener("keypress", (e) => e.stopPropagation());
+      };
+      this._searchKeyup = (e) => e.stopPropagation();
+      this._searchKeypress = (e) => e.stopPropagation();
+      window.addEventListener("keydown", this._searchKeydown);
+      window.addEventListener("keyup", this._searchKeyup);
+      window.addEventListener("keypress", this._searchKeypress);
       this._searchHtmlInput = htmlInput;
       this._searchInputResizeFn = _repositionInput;
     };
@@ -2409,6 +2416,9 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         window.removeEventListener("resize", this._searchInputResizeFn);
         this._searchInputResizeFn = null;
       }
+      if (this._searchKeydown) { window.removeEventListener("keydown", this._searchKeydown); this._searchKeydown = null; }
+      if (this._searchKeyup) { window.removeEventListener("keyup", this._searchKeyup); this._searchKeyup = null; }
+      if (this._searchKeypress) { window.removeEventListener("keypress", this._searchKeypress); this._searchKeypress = null; }
       const destroy = () => {
         for (const obj of this._searchOverlayObjects) {
           if (obj && obj.destroy) obj.destroy();
@@ -3283,11 +3293,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       if (this._versusResultObjs) {
         for (const o of this._versusResultObjs) o.destroy();
         this._versusResultObjs = null;
-        this._versusResultShown = false;
-        this._versusMode = false;
-        if (this._versusConn) { try { this._versusConn.close(); } catch(e) {} this._versusConn = null; }
-        if (this._versusPeer) { try { this._versusPeer.destroy(); } catch(e) {} this._versusPeer = null; }
-        if (this._versusOpponentSprite) { this._versusOpponentSprite.destroy(); this._versusOpponentSprite = null; }
+        this._cleanupVersus();
         this.scene.restart();
         return;
       }
@@ -3330,6 +3336,23 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const deleted = this._practicedMode.deleteLastCheckpoint();
       }
     });
+    if (window._versusMode && window._versusConn) {
+      window._versusConn.on("data", (data) => {
+        if (typeof data === "string") {
+          if (data === "win") {
+            this._showVersusResult(false);
+          }
+        } else if (data && data.type === "state") {
+          window._versusOpponent = data;
+        }
+      });
+      window._versusConn.on("close", () => {
+        if (!window._versusResultShown) {
+          window._versusMode = false;
+          Swal.fire({ title: "Disconnected", text: "Connection lost.", icon: "info", confirmButtonColor: "#3085d6" });
+        }
+      });
+    }
     this._paused = false;
     this._pauseContainer = null;
     this._sfxVolume = localStorage.getItem("userSfxVol") ?? 1;
@@ -6529,7 +6552,7 @@ buildAccountInfo() {
     }
     this._playTime += deltaTime / 1000;
     this._audio.update(deltaTime / 1000);
-    if (this._versusMode && !this._menuActive) this._updateVersus();
+    if (window._versusMode && !this._menuActive) this._updateVersus();
     
     window._animTimer += deltaTime;
     for (let _as of window._animatedSprites) {
@@ -9072,15 +9095,26 @@ _applyMirrorEffect() {
     for (const o of this._versusUI) if (o && o.destroy) o.destroy();
     this._versusUI = null;
     this._versusPopup = false;
-    if (this._versusPeer) { this._versusPeer.destroy(); this._versusPeer = null; }
-    this._versusConn = null;
+    if (window._versusPeer) { window._versusPeer.destroy(); window._versusPeer = null; }
+    if (window._versusConn) { try { window._versusConn.close(); } catch(e) {} window._versusConn = null; }
+    window._versusMode = false;
+    window._versusOpponent = null;
+    window._versusResultShown = false;
+  }
+
+  _cleanupVersus() {
+    if (window._versusPeer) { try { window._versusPeer.destroy(); } catch(e) {} window._versusPeer = null; }
+    if (window._versusConn) { try { window._versusConn.close(); } catch(e) {} window._versusConn = null; }
+    window._versusMode = false;
+    window._versusOpponent = null;
+    window._versusResultShown = false;
   }
 
   _hostVersus(hostBtn, hostLbl, joinBtn, joinLbl, orTxt, statusTxt, tx, ty, cx) {
-    if (this._versusPeer) return;
+    if (window._versusPeer) return;
     statusTxt.setText("Creating room...");
-    this._versusPeer = new Peer();
-    this._versusPeer.on("open", (id) => {
+    window._versusPeer = new Peer();
+    window._versusPeer.on("open", (id) => {
       hostBtn.setVisible(false); hostLbl.setVisible(false);
       joinBtn.setVisible(false); joinLbl.setVisible(false);
       orTxt.setVisible(false);
@@ -9092,26 +9126,42 @@ _applyMirrorEffect() {
         copyLbl.setText("Copied!");
       });
       this._versusUI.push(copyBtn, copyLbl);
-      statusTxt.setText("Room ID: " + id + " (shared below)");
     });
-    this._versusPeer.on("connection", (conn) => {
-      this._versusConn = conn;
+    window._versusPeer.on("connection", (conn) => {
+      window._versusConn = conn;
+      conn.on("data", (data) => {
+        if (typeof data === "string" && data.startsWith("level:")) {
+          const id = data.replace("level:", "");
+          statusTxt.setText("Starting level " + id + "...");
+          this._beginVersusGame(id, tx, ty, cx);
+        }
+      });
+      conn.on("close", () => {
+        if (!window._versusResultShown) {
+          Swal.fire({ title: "Disconnected", text: "Opponent left the game.", icon: "info", confirmButtonColor: "#3085d6" });
+          window._versusMode = false;
+        }
+      });
       statusTxt.setText("Connected! Enter level ID:");
       this._showVersusLevelInput(tx, ty, cx, true);
+    });
+    window._versusPeer.on("error", () => {
+      Swal.fire({ title: "Error", text: "Failed to create room.", icon: "error", confirmButtonColor: "#3085d6" });
+      this._cleanupVersus();
     });
   }
 
   _joinVersus(hostBtn, hostLbl, joinBtn, joinLbl, orTxt, statusTxt, tx, ty, cx) {
-    if (this._versusPeer) return;
+    if (window._versusPeer) return;
     (async () => {
       const peerId = await customPrompt("Enter the host's Room ID:");
       if (!peerId || !peerId.trim()) return;
       hideLoader();
       showLoader("Connecting...");
-      this._versusPeer = new Peer();
-      this._versusPeer.on("open", () => {
-        const conn = this._versusPeer.connect(peerId.trim());
-        this._versusConn = conn;
+      window._versusPeer = new Peer();
+      window._versusPeer.on("open", () => {
+        const conn = window._versusPeer.connect(peerId.trim());
+        window._versusConn = conn;
         conn.on("open", () => {
           hideLoader();
           hostBtn.setVisible(false); hostLbl.setVisible(false);
@@ -9119,10 +9169,22 @@ _applyMirrorEffect() {
           orTxt.setVisible(false);
           statusTxt.setText("Connected! Waiting for host...");
         });
-        conn.on("data", (data) => this._versusHandleData(data, statusTxt, tx, ty, cx));
-        conn.on("error", () => { hideLoader(); Swal.fire({ title: "Connection Failed", text: "Could not connect to host.", icon: "error", confirmButtonColor: "#3085d6" }); });
+        conn.on("data", (data) => {
+          if (typeof data === "string" && data.startsWith("level:")) {
+            const id = data.replace("level:", "");
+            statusTxt.setText("Starting level " + id + "...");
+            this._beginVersusGame(id, tx, ty, cx);
+          }
+        });
+        conn.on("close", () => {
+          if (!window._versusResultShown) {
+            Swal.fire({ title: "Disconnected", text: "Host left the game.", icon: "info", confirmButtonColor: "#3085d6" });
+            window._versusMode = false;
+          }
+        });
+        conn.on("error", () => { hideLoader(); Swal.fire({ title: "Connection Failed", text: "Could not connect to host.", icon: "error", confirmButtonColor: "#3085d6" }); window._versusMode = false; });
       });
-      this._versusPeer.on("error", () => { hideLoader(); Swal.fire({ title: "Error", text: "Failed to create peer connection.", icon: "error", confirmButtonColor: "#3085d6" }); });
+      window._versusPeer.on("error", () => { hideLoader(); Swal.fire({ title: "Error", text: "Failed to create peer connection.", icon: "error", confirmButtonColor: "#3085d6" }); this._cleanupVersus(); });
     })();
   }
 
@@ -9133,23 +9195,9 @@ _applyMirrorEffect() {
       if (!id || !id.trim()) return;
       const levelId = id.trim().replace(/\D/g, "");
       if (!levelId) { Swal.fire({ title: "Invalid", text: "Enter a numeric level ID.", icon: "error", confirmButtonColor: "#3085d6" }); return; }
-      this._versusConn.send("level:" + levelId);
+      if (window._versusConn) window._versusConn.send("level:" + levelId);
       this._beginVersusGame(levelId, tx, ty, cx);
     })();
-  }
-
-  _versusHandleData(data, statusTxt, tx, ty, cx) {
-    if (typeof data === "string") {
-      if (data.startsWith("level:")) {
-        const id = data.replace("level:", "");
-        statusTxt.setText("Starting level " + id + "...");
-        this._beginVersusGame(id, tx, ty, cx);
-      } else if (data === "win") {
-        this._showVersusResult(false);
-      }
-    } else if (data && data.type === "state") {
-      this._versusOpponent = data;
-    }
   }
 
   _beginVersusGame(levelId, tx, ty, cx) {
@@ -9158,15 +9206,15 @@ _applyMirrorEffect() {
       this._versusUI = null;
     }
     this._versusPopup = false;
-    this._versusMode = true;
-    this._versusOpponent = null;
-    this._versusOpponentSprite = null;
+    window._versusMode = true;
+    window._versusOpponent = null;
+    window._versusResultShown = false;
     this._playOnlineLevel(parseInt(levelId));
   }
 
   _showVersusResult(won) {
-    if (this._versusResultShown) return;
-    this._versusResultShown = true;
+    if (window._versusResultShown) return;
+    window._versusResultShown = true;
     const sw = screenWidth, sh = screenHeight, cx = sw / 2;
     const bg = this.add.rectangle(cx, sh / 2, sw, sh, 0x000000, 0.7).setScrollFactor(0).setDepth(300).setInteractive();
     const txt = this.add.bitmapText(cx, sh / 2 - 40, "bigFont", won ? "You Win!" : "You Lose!", won ? 64 : 48).setOrigin(0.5).setScrollFactor(0).setDepth(301);
@@ -9176,13 +9224,13 @@ _applyMirrorEffect() {
   }
 
   _updateVersus() {
-    if (!this._versusMode || !this._versusConn || this._paused) return;
-    if (this._levelWon && !this._versusResultShown) {
-      this._versusConn.send("win");
+    if (!window._versusMode || !window._versusConn || this._paused) return;
+    if (this._levelWon && !window._versusResultShown) {
+      window._versusConn.send("win");
       this._showVersusResult(true);
       return;
     }
-    this._versusConn.send({
+    window._versusConn.send({
       type: "state",
       x: this._playerWorldX || 0,
       y: this._state ? this._state.y : 0,
@@ -9190,13 +9238,13 @@ _applyMirrorEffect() {
       rot: this._player ? this._player._shipSpriteLayer?.sprite?.rotation || 0 : 0,
       dead: this._state ? this._state.isDead : false
     });
-    if (this._versusOpponent && !this._versusResultShown) {
+    if (window._versusOpponent && !window._versusResultShown) {
       this._renderVersusOpponent();
     }
   }
 
   _renderVersusOpponent() {
-    const opp = this._versusOpponent;
+    const opp = window._versusOpponent;
     if (!opp) return;
     const sh = screenHeight;
     const screenX = opp.x - this._cameraX;
@@ -10180,7 +10228,7 @@ _applyMirrorEffect() {
           try {
             const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
             const enc = btoa(unescape(encodeURIComponent(comment))).replace(/\+/g, "-").replace(/\//g, "_");
-            const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&userName=${encodeURIComponent(localStorage.getItem("username"))}&comment=${enc}&secret=Wmfd2893gb7`;
+            const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&userName=${encodeURIComponent(localStorage.getItem("username"))}&comment=${enc}&secret=Wmfd2893gb7&gameVersion=22&binaryVersion=42`;
             const res = await fetch(`${PROXY}/uploadGJAccComment20.php`, {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -10310,7 +10358,7 @@ _applyMirrorEffect() {
             let chk = "";
             for (let i = 0; i < chkStr.length; i++) chk += String.fromCharCode(chkStr.charCodeAt(i) ^ chkKey.charCodeAt(i % chkKey.length));
             chk = btoa(chk).replace(/\+/g, "-").replace(/\//g, "_");
-            const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&userName=${encodeURIComponent(localStorage.getItem("username"))}&comment=${enc}&levelID=${levelId}&percent=0&chk=${chk}&secret=Wmfd2893gb7`;
+            const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&userName=${encodeURIComponent(localStorage.getItem("username"))}&comment=${enc}&levelID=${levelId}&percent=0&chk=${chk}&secret=Wmfd2893gb7&gameVersion=22&binaryVersion=42`;
             const res = await fetch(`${PROXY}/uploadGJComment21.php`, {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
