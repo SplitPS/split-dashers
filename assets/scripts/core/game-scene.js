@@ -1895,8 +1895,9 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     };
     this._closeEditorMenu = () => {
         if (this._editorObjects) {
-            this._editorObjects.forEach(obj => obj.destroy());
+            for (const obj of this._editorObjects) if (obj && obj.destroy) obj.destroy();
         }
+        if (this._editorOverlay && this._editorOverlay.destroy) this._editorOverlay.destroy();
         this._editorOverlay = null;
         this._editorObjects = null;
     };
@@ -3215,7 +3216,6 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       } 
       if (this._searchOverlay) {
         this._closeSearchMenu(true);
-        this._openCreatorMenu();
         return;
       }
       if (this._onlineLevelsOverlay) {
@@ -3258,6 +3258,22 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       }
       if (this._achievementsPopup) {
         this._hideAchievementsScreen();
+        return;
+      }
+      if (this._profileOverlay) {
+        this._profileOverlay.blocker.removeInteractive();
+        this._profileOverlay.container.destroy();
+        this._profileOverlay.overlay.destroy();
+        this._profileOverlay.blocker.destroy();
+        this._profileOverlay = null;
+        return;
+      }
+      if (this._editorOverlay) {
+        this._closeEditorMenu(true);
+        return;
+      }
+      if (this._leaderboardPopup) {
+        this._hideLeaderboardScreen();
         return;
       }
       if (this._versusPopup) {
@@ -8940,7 +8956,9 @@ _applyMirrorEffect() {
         const data = new URLSearchParams({
           secret: "Wmfd2893gb7",
           type: "top",
-          count: String(maxRows)
+          count: String(maxRows),
+          gameVersion: "22",
+          binaryVersion: "42"
         });
         const aid = localStorage.getItem("aid") || "";
         const gjp2 = localStorage.getItem("gjp2") || "";
