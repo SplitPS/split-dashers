@@ -988,7 +988,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             let txt = await f.text();
             let id = txt.split("|")[0] // yo splitgdps reference
             hideLoader();
-            _doSearchInner(id);
+            await _doSearchInner(id);
             })();
           })
         } else {
@@ -2071,7 +2071,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const loadingText = this.add.bitmapText(sw / 2, sh / 2, "bigFont", "Loading level...", 30)
           .setScrollFactor(0).setDepth(1001).setOrigin(0.5);
         this._searchOverlayObjects.push(loadingBg, loadingText);
-        _doSearchInner(window.levelID);
+        await _doSearchInner(window.levelID);
       }
       window.addEventListener("keydown", (e) => {
         if (e.key === "Enter") _doSearch();
