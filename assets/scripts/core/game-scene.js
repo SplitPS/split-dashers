@@ -1618,12 +1618,96 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const lengthLabel = this.add.bitmapText(centerX - 310, footerY, "bigFont", lengthValues[level.levelLength], 33).setOrigin(0, 0.5).setDepth(152);
         const songIcon = this.add.image(centerX - 160, footerY, "GJ_GameSheet03", "GJ_musicIcon_001.png").setScale(1).setDepth(152);
         const songLabel = this.add.bitmapText(centerX - 115, footerY, "bigFont", level.song, 29).setOrigin(0, 0.5).setDepth(152);
+        const songHitArea = this.add.rectangle(centerX - 70, footerY, 250, 40, 0x3085d6, 0.0).setDepth(153).setInteractive({ useHandCursor: true });
+        songHitArea.on('pointerover', () => songHitArea.setFillStyle(0x3085d6, 0.15));
+        songHitArea.on('pointerout', () => songHitArea.setFillStyle(0x3085d6, 0.0));
+        songHitArea.on('pointerdown', () => { this._openSongPicker(level, saveToLS, () => songLabel.setText(level.song)); });
         const statusIcon = this.add.image(centerX + 200, footerY, "GJ_GameSheet03", "GJ_infoIcon_001.png").setScale(1).setDepth(152).setFlipY(true).setAngle(90);
         const statusLabel = this.add.bitmapText(centerX + 245, footerY, "bigFont", level.status, 33).setOrigin(0, 0.5).setDepth(152);
         const versionText = this.add.bitmapText(centerX - 180, subFooterY, "goldFont", `Version: ${level.version || 1}`, 30).setOrigin(0.5).setDepth(152);
         const idText = this.add.bitmapText(centerX + 180, subFooterY, "goldFont", `ID: ${level.levelId || "na"}`, 30).setOrigin(0.5).setDepth(152);
 
-        container.add([nameBox, titleText, titleCursor, descBox, descText, descCursor, playBtn, editBtn, shareBtn, backBtn, deleteBtn, lengthIcon, lengthLabel, songIcon, songLabel, statusIcon, statusLabel, versionText, idText]);
+        container.add([nameBox, titleText, titleCursor, descBox, descText, descCursor, playBtn, editBtn, shareBtn, backBtn, deleteBtn, lengthIcon, lengthLabel, songIcon, songLabel, songHitArea, statusIcon, statusLabel, versionText, idText]);
+    };
+    this._openSongPicker = (level, saveToLS, refreshLabel) => {
+        const officialSongs = window.allLevels;
+        let officialOptions = officialSongs.map((s, i) => {
+            const isCurrent = level.songId < 0 && Math.abs(level.songId) - 1 === i;
+            return `<option value="${i}" ${isCurrent ? 'selected' : ''}>${s[1]} — ${s[3][1]}</option>`;
+        }).join('');
+
+        const isOfficial = level.songId < 0;
+        const isNG = level.songId > 0;
+
+        Swal.fire({
+            title: 'Choose Song',
+            width: 520,
+            html: `
+                <div style="margin-bottom:16px;display:flex;gap:0;border:2px solid #3085d6;border-radius:8px;overflow:hidden">
+                    <button id="tabOfficial" type="button" style="flex:1;padding:10px 16px;border:none;cursor:pointer;font-size:15px;font-weight:bold;${isOfficial ? 'background:#3085d6;color:#fff' : 'background:#eee;color:#555'}">Official</button>
+                    <button id="tabNG" type="button" style="flex:1;padding:10px 16px;border:none;cursor:pointer;font-size:15px;font-weight:bold;${isNG ? 'background:#3085d6;color:#fff' : 'background:#eee;color:#555'}">Newgrounds</button>
+                </div>
+                <div id="swalOfficialSection">
+                    <select id="officialSelect" style="width:100%;padding:10px;font-size:15px;border:1px solid #ccc;border-radius:6px;background:#fff;outline:none">
+                        ${officialOptions}
+                    </select>
+                </div>
+                <div id="swalNGSection" style="display:${isNG ? 'block' : 'none'}">
+                    <input id="ngInput" type="number" class="swal2-input" placeholder="Enter Newgrounds Song ID" value="${isNG ? level.songId : ''}" style="width:100%;box-sizing:border-box">
+                    <div style="margin-top:8px;font-size:13px;color:#888">Enter the numeric ID of a Newgrounds song.</div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Select',
+            didOpen: () => {
+                const tabOff = document.getElementById('tabOfficial');
+                const tabNG = document.getElementById('tabNG');
+                const offSection = document.getElementById('swalOfficialSection');
+                const ngSection = document.getElementById('swalNGSection');
+
+                const setActiveTab = (official) => {
+                    tabOff.style.background = official ? '#3085d6' : '#eee';
+                    tabOff.style.color = official ? '#fff' : '#555';
+                    tabNG.style.background = official ? '#eee' : '#3085d6';
+                    tabNG.style.color = official ? '#555' : '#fff';
+                    offSection.style.display = official ? 'block' : 'none';
+                    ngSection.style.display = official ? 'none' : 'block';
+                };
+
+                tabOff.addEventListener('click', () => setActiveTab(true));
+                tabNG.addEventListener('click', () => setActiveTab(false));
+            },
+            preConfirm: () => {
+                const offSection = document.getElementById('swalOfficialSection');
+                const isOfficialTab = offSection.style.display !== 'none';
+                if (isOfficialTab) {
+                    const idx = parseInt(document.getElementById('officialSelect').value);
+                    return { type: 'official', index: idx };
+                } else {
+                    const ngId = parseInt(document.getElementById('ngInput').value);
+                    if (!ngId || ngId <= 0) {
+                        Swal.showValidationMessage('Please enter a valid Newgrounds song ID');
+                        return false;
+                    }
+                    return { type: 'newgrounds', id: ngId };
+                }
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                const choice = result.value;
+                if (choice.type === 'official') {
+                    const song = window.allLevels[choice.index];
+                    level.song = song[1];
+                    level.songId = -(choice.index + 1);
+                } else {
+                    level.song = `NG#${choice.id}`;
+                    level.songId = choice.id;
+                }
+                saveToLS('song', level.song);
+                saveToLS('songId', level.songId);
+                refreshLabel();
+            }
+        });
     };
     this._startCreatedLevel = async (level, isEditor) => {
       window._gdProxyUrl = "https://tails1154.com:9995/https://split.ps.fhgdps.com";
