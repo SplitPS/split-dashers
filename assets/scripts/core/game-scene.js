@@ -11016,24 +11016,46 @@ _applyMirrorEffect() {
           hideLoader();
           commentObjs = [];
           if (text && text !== "-1") {
-            const entries = text.split("|");
-            for (const entry of entries) {
-              if (!entry || !entry.includes("~")) continue;
+            console.log("RAW COMMENT RESPONSE:", text.substring(0, 500));
+            const sections = text.split("#");
+            const commentStrs = sections[0].split("|").filter(s => s.includes("~"));
+            let authorMap = {};
+            if (sections[1]) {
+              const authorParts = sections[1].split("|");
+              for (const ap of authorParts) {
+                const kv = ap.split("~");
+                if (kv.length >= 2) authorMap[kv[0]] = kv[1];
+              }
+            }
+            for (const cs of commentStrs) {
               const cm = {};
-              const parts = entry.split("~");
+              const parts = cs.split("~");
               for (let i = 0; i + 1 < parts.length; i += 2) cm[parts[i]] = parts[i + 1];
               if (cm["2"]) {
                 const decoded = (() => {
                   try { return atob(cm["2"].replace(/-/g, "+").replace(/_/g, "/")); } catch(e) { return cm["2"]; }
                 })();
-                const idx = entry.indexOf(":1~");
-                let authorName = "Unknown";
-                if (idx !== -1) {
-                  const authorPart = entry.substring(idx + 1);
-                  const ap = authorPart.split("~");
-                  for (let i = 0; i + 1 < ap.length; i += 2) { if (ap[i] === "1") { authorName = ap[i + 1]; break; } }
+                console.log("Comment:", decoded, "fields:", cm);
+                commentObjs.push({
+                  text: decoded,
+                  age: cm["6"] || cm["9"] || "",
+                  likes: cm["4"] || "0",
+                  percent: cm["10"] || "",
+                  author: authorMap["1"] || cm["1"] || "Unknown"
+                });
+              }
+            }
+            if (commentObjs.length === 0 && text.includes(":")) {
+              const lines = text.split("|");
+              for (const line of lines) {
+                const kv = line.split(":");
+                if (kv.length >= 2 && kv[0] === "2") {
+                  const decoded = (() => {
+                    try { return atob(kv[1].replace(/-/g, "+").replace(/_/g, "/")); } catch(e) { return kv[1]; }
+                  })();
+                  console.log("Alt-format Comment:", decoded);
+                  commentObjs.push({ text: decoded, age: "", likes: "0", percent: "", author: "Unknown" });
                 }
-                commentObjs.push({ text: decoded, age: cm["9"] || "", likes: cm["4"] || "0", percent: cm["10"] || "", author: authorName });
               }
             }
           }
