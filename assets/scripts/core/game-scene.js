@@ -228,33 +228,7 @@ async function customPassword(message, defaultValue = '') {
   return text;
 
 }
-const _LOADING_MESSAGES = [
-  "Summoning the GD servers...",
-  "Polishing the cubes...",
-  "Feeding the icon kitty...",
-  "Counting orbs...",
-  "Bribing the elder mods...",
-  "Downloading more ram...",
-  "Rendering the impossible...",
-  "Spinning the loading circle...",
-  "Consulting the magic tablet...",
-  "Aligning the 72nd axis...",
-  "Petting the progress bar...",
-  "Initiating the what-the-heck protocol...",
-  "Compiling memes...",
-  "Tuning the dual portals...",
-  "Inflating the wave trail...",
-  "Decrypting the vault codes...",
-  "Charging the ground pound...",
-  "Warming up the NJS...",
-  "Calibrating the physics engine...",
-  "Convincing RobTop to add it...",
-  "Deploying the sneak peek...",
-  "Refueling the arrow triggers...",
-  "Balancing the orbs...",
-  "Unlocking the secret way...",
-  "Sweeping the spikes...",
-];
+const _LOADING_MESSAGES = ["Please wait..."];
 
 /**
  * Opens a blocking loading spinner modal.
@@ -692,21 +666,54 @@ class MacroBot {
 
 const _ACHIEVEMENTS = [
   { id: "jump_100",    name: "First Steps",    desc: "Jump 100 times",       icon: 0 },
+  { id: "jump_500",    name: "Getting Bouncy", desc: "Jump 500 times",        icon: 0 },
   { id: "jump_1k",     name: "Keep Jumping",   desc: "Jump 1,000 times",      icon: 0 },
+  { id: "jump_5k",     name: "Springy",        desc: "Jump 5,000 times",      icon: 0 },
   { id: "jump_10k",    name: "Jumping Pro",    desc: "Jump 10,000 times",     icon: 0 },
+  { id: "jump_50k",    name: "Jump Addict",    desc: "Jump 50,000 times",     icon: 0 },
   { id: "jump_100k",   name: "Jumping God",    desc: "Jump 100,000 times",    icon: 0 },
+  { id: "jump_500k",   name: "Jump Legend",    desc: "Jump 500,000 times",    icon: 0 },
+  { id: "jump_1m",     name: "Jump Messiah",   desc: "Jump 1,000,000 times",  icon: 0 },
   { id: "death_100",   name: "Beginner's Luck", desc: "Die 100 times",        icon: 1 },
+  { id: "death_500",   name: "Unlucky",         desc: "Die 500 times",        icon: 1 },
   { id: "death_1k",    name: "Persistent",     desc: "Die 1,000 times",       icon: 1 },
+  { id: "death_5k",    name: "Dedicated",      desc: "Die 5,000 times",       icon: 1 },
   { id: "death_10k",   name: "Unstoppable",    desc: "Die 10,000 times",      icon: 1 },
+  { id: "death_50k",   name: "Masochist",      desc: "Die 50,000 times",      icon: 1 },
+  { id: "death_100k",  name: "Respawn Champion", desc: "Die 100,000 times",   icon: 1 },
+  { id: "death_500k",  name: "Death Defier",    desc: "Die 500,000 times",    icon: 1 },
+  { id: "death_1m",    name: "Immortal Loser",  desc: "Die 1,000,000 times",  icon: 1 },
   { id: "attempt_100",  name: "Getting Started", desc: "100 attempts",         icon: 2 },
+  { id: "attempt_500",  name: "Persistence",     desc: "500 attempts",         icon: 2 },
   { id: "attempt_1k",   name: "Dedicated",      desc: "1,000 attempts",        icon: 2 },
-  { id: "attempt_10k",  name: "Committed",      desc: "10,000 attempts",       icon: 2 },
+  { id: "attempt_5k",   name: "Committed",      desc: "5,000 attempts",        icon: 2 },
+  { id: "attempt_10k",  name: "Hardcore",       desc: "10,000 attempts",       icon: 2 },
+  { id: "attempt_50k",  name: "No Life",        desc: "50,000 attempts",       icon: 2 },
+  { id: "attempt_100k", name: "Masochist",      desc: "100,000 attempts",      icon: 2 },
+  { id: "attempt_500k", name: "Insane",         desc: "500,000 attempts",      icon: 2 },
+  { id: "attempt_1m",   name: "Unhinged",       desc: "1,000,000 attempts",    icon: 2 },
   { id: "lvl_1",       name: "First Clear",    desc: "Complete 1 level",      icon: 3 },
+  { id: "lvl_2",       name: "Second Try",     desc: "Complete 2 levels",     icon: 3 },
+  { id: "lvl_3",       name: "Third Times the Charm", desc: "Complete 3 levels", icon: 3 },
   { id: "lvl_5",       name: "Getting Good",   desc: "Complete 5 levels",     icon: 3 },
   { id: "lvl_10",      name: "Level Hunter",   desc: "Complete 10 levels",    icon: 3 },
+  { id: "lvl_15",      name: "Seeker",         desc: "Complete 15 levels",    icon: 3 },
+  { id: "lvl_20",      name: "Collector",      desc: "Complete 20 levels",    icon: 3 },
+  { id: "lvl_25",      name: "Level Collector", desc: "Complete 25 levels",   icon: 3 },
+  { id: "lvl_50",      name: "Level Addict",   desc: "Complete 50 levels",    icon: 3 },
+  { id: "lvl_100",     name: "Centurion",      desc: "Complete 100 levels",   icon: 3 },
+  { id: "lvl_200",     name: "Double Centurion", desc: "Complete 200 levels", icon: 3 },
+  { id: "lvl_500",     name: "Pentagon",        desc: "Complete 500 levels",  icon: 3 },
+  { id: "lvl_1000",    name: "Millennium",      desc: "Complete 1,000 levels", icon: 3 },
   { id: "lvl_all",     name: "Completionist",  desc: "Complete all official levels", icon: 3 },
+  { id: "pct_10",      name: "One Tenth",      desc: "Reach 10% on a level",  icon: 4 },
+  { id: "pct_25",      name: "Quarter Way",    desc: "Reach 25% on a level",  icon: 4 },
+  { id: "pct_40",      name: "Getting There",  desc: "Reach 40% on a level",  icon: 4 },
   { id: "pct_50",      name: "Halfway There",  desc: "Reach 50% on a level",  icon: 4 },
-  { id: "pct_90",      name: "Almost There",   desc: "Reach 90% on a level",  icon: 4 },
+  { id: "pct_60",      name: "More Than Half", desc: "Reach 60% on a level",  icon: 4 },
+  { id: "pct_70",      name: "Racing",         desc: "Reach 70% on a level",  icon: 4 },
+  { id: "pct_80",      name: "Almost There",   desc: "Reach 80% on a level",  icon: 4 },
+  { id: "pct_90",      name: "So Close",       desc: "Reach 90% on a level",  icon: 4 },
   { id: "pct_100",     name: "Perfectionist",  desc: "Get 100% on a level",   icon: 4 },
   { id: "creator_1",   name: "Builder",        desc: "Create a level",         icon: 5 },
   { id: "creator_5",   name: "Level Designer", desc: "Create 5 levels",        icon: 5 },
@@ -716,13 +723,23 @@ const _ACHIEVEMENTS = [
   { id: "practice_1",  name: "Practice Makes Perfect", desc: "Beat a level in practice mode", icon: 4 },
   { id: "secret_early_death", name: "Oops!",   desc: "Die in the first 5 seconds", icon: 6, hidden: true },
   { id: "secret_speedrun",    name: "Speedrunner",   desc: "Complete a level in under 30s", icon: 6, hidden: true },
-  { id: "attempt_100k", name: "Masochist", desc: "100,000 attempts", icon: 2 },
-  { id: "death_100k",   name: "Respawn Champion", desc: "Die 100,000 times", icon: 1 },
-  { id: "lvl_25",       name: "Level Collector", desc: "Complete 25 levels", icon: 3 },
-  { id: "lvl_50",       name: "Level Addict", desc: "Complete 50 levels", icon: 3 },
-  { id: "lvl_100",      name: "Centurion", desc: "Complete 100 levels", icon: 3 },
-  { id: "secret_attempt_69", name: "Nice", desc: "Have exactly 69 attempts", icon: 6, hidden: true },
+  { id: "secret_attempt_69", name: "Nice", desc: "Have at least 69 attempts", icon: 6, hidden: true },
   { id: "secret_pause", name: "Taking a Break", desc: "Pause the game mid-air", icon: 6, hidden: true },
+  { id: "secret_flawless", name: "Flawless Victory", desc: "Complete a level without dying", icon: 6, hidden: true },
+  { id: "secret_like", name: "Critic", desc: "Like your first level", icon: 6, hidden: true },
+  { id: "secret_rate", name: "Food Critic", desc: "Rate your first level", icon: 6, hidden: true },
+  { id: "secret_comment", name: "Chatterbox", desc: "Post your first comment", icon: 6, hidden: true },
+  { id: "secret_login", name: "Identified", desc: "Log into your account", icon: 6, hidden: true },
+  { id: "social_like_10", name: "Like Machine", desc: "Like 10 levels", icon: 5 },
+  { id: "social_like_100", name: "Liking Spree", desc: "Like 100 levels", icon: 5 },
+  { id: "social_rate_10", name: "Star Giver", desc: "Rate 10 levels", icon: 5 },
+  { id: "social_rate_100", name: "Star Master", desc: "Rate 100 levels", icon: 5 },
+  { id: "social_comment_10", name: "Talkative", desc: "Post 10 comments", icon: 5 },
+  { id: "social_comment_100", name: "Yapper", desc: "Post 100 comments", icon: 5 },
+  { id: "online_1", name: "Going Online", desc: "Play 1 online level", icon: 3 },
+  { id: "online_10", name: "Browser", desc: "Play 10 online levels", icon: 3 },
+  { id: "online_100", name: "Surfer", desc: "Play 100 online levels", icon: 3 },
+  { id: "secret_double", name: "Double Trouble", desc: "Beat a level in dual mode", icon: 6, hidden: true },
 ];
 
 const _ACHIEVEMENT_ICONS = [
@@ -849,6 +866,16 @@ class GameScene extends Phaser.Scene {
     this._silentAchieveCheck = false;
     this._achieveEarlyDeath = false;
     this._achieveSpeedrun = false;
+    this._achieveFlawless = false;
+    this._achieveFirstLike = false;
+    this._achieveFirstRate = false;
+    this._achieveFirstComment = false;
+    this._likesGiven = 0;
+    this._ratesGiven = 0;
+    this._commentsPosted = 0;
+    this._buttonClicks = 0;
+    this._onlineLevelsPlayed = 0;
+    this._levelDeaths = 0;
     this._startTime = null;
     this._playTime = 0;
     this._menuActive = true;
@@ -1868,6 +1895,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         this.scene.restart();
     };
     this._playOnlineLevel = async (levelId) => {
+      this._onlineLevelsPlayed++;
       showLoader("Downloading level");
       const PROXY_BASE = window._gdProxyUrl;
       try {
@@ -2178,7 +2206,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             htmlInput.remove();
             window.removeEventListener("resize", _repositionInput);
             this._closeSearchMenu(true);
-            this._playOnlineLevel(lv.id);
+            this._openLevelPage(lv);
           });
         }
       };
@@ -5464,6 +5492,7 @@ buildAccountInfo() {
       return;
     }
     this._startTime = Date.now();
+    this._levelDeaths = 0;
     
     // fixed loading saved new best from local storage
     this._bestPercent = parseFloat(localStorage.getItem("bestPercent_" + (window.currentlevel[2] || "level_1")) || "0");
@@ -5945,6 +5974,7 @@ buildAccountInfo() {
     this._levelAttempts++;
     this._startTime = Date.now();
     this._levelJumps = 0;
+    this._levelDeaths = 0;
     const _0x2ba78a = this._cameraX;
     if (this._levelWon && this._practicedMode.practiceMode) {
       this._practicedMode.togglePracticeMode();
@@ -6422,6 +6452,7 @@ buildAccountInfo() {
     if (this._menuActive) {
       const _anyOverlayOpen = this._iconOverlay || this._creatorOverlay || this._searchOverlay ||
         this._onlineLevelsOverlay || this._listsOverlay || this._mapPacksOverlay || this._listDetailOverlay ||
+        this._levelPageOverlay || this._levelCommentsOverlay ||
         this._settingsLayerOverlay || this._settingsPopup ||
         this._infoPopup || this._newgroundsPopup || this._statsLayerOverlay || this._updateLogPopup;
       if (!_anyOverlayOpen && (this._spaceKey.isDown || this._upKey.isDown || this._wKey.isDown) && !this._spaceWasDown) {
@@ -6577,6 +6608,7 @@ buildAccountInfo() {
         });
         this._deathSoundPlayed = true;
         this._totalDeaths++;
+        this._levelDeaths++;
         localStorage.setItem("gd_totalDeaths", this._totalDeaths);
         if (this._startTime && Date.now() - this._startTime < 5000 && !this._practicedMode.practiceMode) {
           this._achieveEarlyDeath = true;
@@ -8200,6 +8232,9 @@ _applyMirrorEffect() {
       if (this._startTime && (Date.now() - this._startTime < 30000)) {
         this._achieveSpeedrun = true;
       }
+      if (this._levelDeaths === 0) {
+        this._achieveFlawless = true;
+      }
     } else {
       this._practiceBestPercent = 100;
       localStorage.setItem("practiceBestPercent_" + (window.currentlevel[2] || "level_1"), 100);
@@ -8772,7 +8807,59 @@ _applyMirrorEffect() {
     for (const ach of _ACHIEVEMENTS) {
       if (this._achievements[ach.id]) continue;
       let unlocked = false;
-      switch (ach.id) {
+      const aId = ach.id;
+      const prefix = aId.split("_")[0];
+      if (aId === "jump_500") unlocked = stats.jumps >= 500;
+      else if (aId === "jump_5k") unlocked = stats.jumps >= 5000;
+      else if (aId === "jump_50k") unlocked = stats.jumps >= 50000;
+      else if (aId === "jump_500k") unlocked = stats.jumps >= 500000;
+      else if (aId === "jump_1m") unlocked = stats.jumps >= 1000000;
+      else if (aId === "death_500") unlocked = stats.deaths >= 500;
+      else if (aId === "death_5k") unlocked = stats.deaths >= 5000;
+      else if (aId === "death_50k") unlocked = stats.deaths >= 50000;
+      else if (aId === "death_500k") unlocked = stats.deaths >= 500000;
+      else if (aId === "death_1m") unlocked = stats.deaths >= 1000000;
+      else if (aId === "attempt_500") unlocked = stats.attempts >= 500;
+      else if (aId === "attempt_5k") unlocked = stats.attempts >= 5000;
+      else if (aId === "attempt_50k") unlocked = stats.attempts >= 50000;
+      else if (aId === "attempt_500k") unlocked = stats.attempts >= 500000;
+      else if (aId === "attempt_1m") unlocked = stats.attempts >= 1000000;
+      else if (aId === "lvl_2") unlocked = stats.completed >= 2;
+      else if (aId === "lvl_3") unlocked = stats.completed >= 3;
+      else if (aId === "lvl_15") unlocked = stats.completed >= 15;
+      else if (aId === "lvl_20") unlocked = stats.completed >= 20;
+      else if (aId === "lvl_200") unlocked = stats.completed >= 200;
+      else if (aId === "lvl_500") unlocked = stats.completed >= 500;
+      else if (aId === "lvl_1000") unlocked = stats.completed >= 1000;
+      else if (aId === "pct_10") unlocked = this._achievePctBest() >= 10;
+      else if (aId === "pct_25") unlocked = this._achievePctBest() >= 25;
+      else if (aId === "pct_40") unlocked = this._achievePctBest() >= 40;
+      else if (aId === "pct_60") unlocked = this._achievePctBest() >= 60;
+      else if (aId === "pct_70") unlocked = this._achievePctBest() >= 70;
+      else if (aId === "pct_80") unlocked = this._achievePctBest() >= 80;
+      else if (aId === "secret_flawless") unlocked = this._achieveFlawless;
+      else if (aId === "secret_like") unlocked = this._achieveFirstLike;
+      else if (aId === "secret_rate") unlocked = this._achieveFirstRate;
+      else if (aId === "secret_comment") unlocked = this._achieveFirstComment;
+      else if (aId === "secret_login") unlocked = localStorage.getItem("loggedIn") === "true";
+      else if (aId === "online_1") unlocked = this._onlineLevelsPlayed >= 1;
+      else if (aId === "online_10") unlocked = this._onlineLevelsPlayed >= 10;
+      else if (aId === "online_100") unlocked = this._onlineLevelsPlayed >= 100;
+      else if (aId === "social_like_10") unlocked = this._likesGiven >= 10;
+      else if (aId === "social_like_100") unlocked = this._likesGiven >= 100;
+      else if (aId === "social_rate_10") unlocked = this._ratesGiven >= 10;
+      else if (aId === "social_rate_100") unlocked = this._ratesGiven >= 100;
+      else if (aId === "social_comment_10") unlocked = this._commentsPosted >= 10;
+      else if (aId === "social_comment_100") unlocked = this._commentsPosted >= 100;
+      else if (aId === "attempt_100k") unlocked = stats.attempts >= 100000;
+      else if (aId === "death_100k") unlocked = stats.deaths >= 100000;
+      else if (aId === "lvl_25") unlocked = stats.completed >= 25;
+      else if (aId === "lvl_50") unlocked = stats.completed >= 50;
+      else if (aId === "lvl_100") unlocked = stats.completed >= 100;
+      else if (aId === "secret_attempt_69") unlocked = stats.attempts >= 69;
+      else if (aId === "secret_pause") unlocked = this._achievePaused;
+      else if (aId === "secret_double") unlocked = false;
+      else switch (aId) {
         case "jump_100": unlocked = stats.jumps >= 100; break;
         case "jump_1k": unlocked = stats.jumps >= 1000; break;
         case "jump_10k": unlocked = stats.jumps >= 10000; break;
@@ -8798,13 +8885,6 @@ _applyMirrorEffect() {
         case "practice_1": unlocked = this._achievePracticeBest() >= 100; break;
         case "secret_early_death": unlocked = this._achieveEarlyDeath; break;
         case "secret_speedrun": unlocked = this._achieveSpeedrun; break;
-        case "attempt_100k": unlocked = stats.attempts >= 100000; break;
-        case "death_100k": unlocked = stats.deaths >= 100000; break;
-        case "lvl_25": unlocked = stats.completed >= 25; break;
-        case "lvl_50": unlocked = stats.completed >= 50; break;
-        case "lvl_100": unlocked = stats.completed >= 100; break;
-        case "secret_attempt_69": unlocked = stats.attempts >= 69; break;
-        case "secret_pause": unlocked = this._achievePaused; break;
       }
       if (unlocked) {
         this._unlockAchievement(ach.id, !notified);
@@ -9839,8 +9919,7 @@ _applyMirrorEffect() {
         .setScrollFactor(0).setDepth(204).setInteractive().setScale(0.5);
       cellObjs.push(playBtn);
       this._makeBouncyButton(playBtn, 0.5, () => {
-        for (const o of activeCellObjs) if (o && o.destroy) o.destroy();
-        this._playOnlineLevel(levelData.id);
+        this._openLevelPage(levelData);
       });
 
       if (rowIdx > 0) {
@@ -10161,7 +10240,7 @@ _applyMirrorEffect() {
         .setScrollFactor(0).setDepth(202);
       objs.push(bg);
       const nameTxt = this.add.bitmapText(shell.listLeft + 15, ry + 12, "bigFont", list.name, 28)
-        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203).setMaxWidth(500);
       objs.push(nameTxt);
       const authorTxt = this.add.bitmapText(shell.listLeft + 15, ry + 42, "goldFont", "by " + list.author, 18)
         .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
@@ -10302,7 +10381,7 @@ _applyMirrorEffect() {
         .setScrollFactor(0).setDepth(202).setOrigin(0, 0);
       objs.push(tintBg);
       const nameTxt = this.add.bitmapText(shell.listLeft + 20, ry + 12, "bigFont", pack.name, 28)
-        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203).setMaxWidth(500);
       objs.push(nameTxt);
       const infoTxt = this.add.bitmapText(shell.listLeft + 20, ry + 42, "goldFont", pack.stars + "★ " + pack.coins + "♦ " + pack.diamonds + "♦", 18)
         .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
@@ -10442,7 +10521,7 @@ _applyMirrorEffect() {
         activeObjs.push(bg);
         const displayName = loadedNames[id] || ("Level " + id);
         const label = this.add.bitmapText(listLeft + 20, ry + 16, "bigFont", displayName, 24)
-          .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+          .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203).setMaxWidth(600);
         activeObjs.push(label);
         if (!loadedNames[id]) nameRefs.push({ id, label });
         const playBtn = this.add.image(listLeft + panelW - 40, ry + 26, "GJ_GameSheet03", "GJ_playBtn2_001.png")
@@ -10511,6 +10590,117 @@ _applyMirrorEffect() {
     this.input.on("wheel", _onWheel);
     objects.push({ destroy: () => this.input.off("wheel", _onWheel) });
     objects.push({ destroy: () => { _destroyed = true; for (const o of activeObjs) if (o && o.destroy) o.destroy(); activeObjs.length = 0; } });
+  }
+
+  _openLevelPage(levelData) {
+    if (this._levelPageOverlay) return;
+    const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+    const fadeIn = this.add.graphics().setScrollFactor(0).setDepth(200);
+    fadeIn.fillStyle(0x000000, 1);
+    fadeIn.fillRect(0, 0, sw, sh);
+    this.tweens.add({ targets: fadeIn, alpha: 0, duration: 300, ease: "Linear", onComplete: () => fadeIn.destroy() });
+    const overlay = this.add.graphics().setScrollFactor(0).setDepth(100);
+    for (let gi = 0; gi < 80; gi++) {
+      const t = gi / 79;
+      const r = Math.round(0x00 + (0x01 - 0x00) * t);
+      const g = Math.round(0x2c + (0x1a - 0x2c) * t);
+      const b = Math.round(0x71 + (0x3a - 0x71) * t);
+      overlay.fillStyle((r << 16) | (g << 8) | b, 1);
+      overlay.fillRect(0, Math.floor(gi * sh / 80), sw, Math.ceil(sh / 80) + 1);
+    }
+    const blocker = this.add.zone(cx, sh / 2, sw, sh).setScrollFactor(0).setDepth(101).setInteractive();
+    const container = this.add.container(0, 0).setScrollFactor(0).setDepth(150);
+    const panelW = 500, panelH = 420;
+    const panelX = cx - panelW / 2, panelY = sh / 2 - panelH / 2;
+    const panelBg = this.add.graphics().setDepth(151);
+    panelBg.fillStyle(0x000000, 0.7);
+    panelBg.fillRoundedRect(panelX, panelY, panelW, panelH, 16);
+    panelBg.lineStyle(3, 0x888888);
+    panelBg.strokeRoundedRect(panelX, panelY, panelW, panelH, 16);
+    container.add(panelBg);
+
+    const diffLabel = ["N/A","Easy","Normal","Hard","Harder","Insane","Demon","Demon","Demon","Demon","Demon","Auto"];
+    const d = Math.min(levelData.difficulty || 0, 11);
+    const nameTxt = this.add.bitmapText(cx, panelY + 40, "bigFont", levelData.name || "Unknown", 32).setOrigin(0.5).setDepth(152).setMaxWidth(400);
+    container.add(nameTxt);
+    const authorTxt = this.add.bitmapText(cx, panelY + 75, "goldFont", "by " + (levelData.author || "Unknown"), 20).setOrigin(0.5).setDepth(152);
+    container.add(authorTxt);
+    const diffTxt = this.add.bitmapText(cx, panelY + 110, "goldFont", diffLabel[d] + (levelData.stars > 0 ? " " + levelData.stars + "*" : ""), 22).setOrigin(0.5).setDepth(152);
+    container.add(diffTxt);
+
+    const statsY = panelY + 150;
+    const dlTxt = this.add.bitmapText(cx, statsY, "goldFont", "\u2913 " + (levelData.downloads || 0) + " downloads", 18).setOrigin(0.5).setDepth(152);
+    container.add(dlTxt);
+    const likeTxt = this.add.bitmapText(cx, statsY + 28, "goldFont", (levelData.likes >= 0 ? "\u2661 " : "\u2661 ") + (levelData.likes || 0) + (levelData.likes >= 0 ? " likes" : " dislikes"), 18).setOrigin(0.5).setDepth(152);
+    container.add(likeTxt);
+
+    const btnY = panelY + panelH - 60;
+    const playBtn = this.add.image(cx - 150, btnY, "GJ_GameSheet03", "GJ_playBtn2_001.png").setScale(0.6).setDepth(152).setInteractive();
+    const playLbl = this.add.bitmapText(cx - 150, btnY + 35, "bigFont", "Play", 16).setOrigin(0.5).setDepth(152);
+    container.add([playBtn, playLbl]);
+    this._makeBouncyButton(playBtn, 0.6, () => {
+      for (const o of container.getAll()) if (o.destroy) o.destroy();
+      overlay.destroy(); blocker.destroy(); container.destroy();
+      this._levelPageOverlay = null;
+      this._playOnlineLevel(levelData.id);
+    });
+
+    const likeBtn = this.add.image(cx - 50, btnY, "GJ_GameSheet03", "GJ_likeBtn_001.png").setScale(0.6).setDepth(152).setInteractive();
+    const likeLbl = this.add.bitmapText(cx - 50, btnY + 35, "bigFont", "Like", 16).setOrigin(0.5).setDepth(152);
+    container.add([likeBtn, likeLbl]);
+    this._makeBouncyButton(likeBtn, 0.6, () => this._likeLevel(levelData.id, 1));
+
+    const dislikeBtn = this.add.image(cx + 50, btnY, "GJ_GameSheet03", "GJ_dislikeBtn_001.png").setScale(0.6).setDepth(152).setInteractive();
+    const dislikeLbl = this.add.bitmapText(cx + 50, btnY + 35, "bigFont", "Dislike", 16).setOrigin(0.5).setDepth(152);
+    container.add([dislikeBtn, dislikeLbl]);
+    this._makeBouncyButton(dislikeBtn, 0.6, () => this._likeLevel(levelData.id, 0));
+
+    const commentBtn = this.add.image(cx + 150, btnY, "GJ_GameSheet03", "GJ_chatBtn_001.png").setScale(0.6).setDepth(152).setInteractive();
+    const commentLbl = this.add.bitmapText(cx + 150, btnY + 35, "bigFont", "Comments", 16).setOrigin(0.5).setDepth(152);
+    container.add([commentBtn, commentLbl]);
+    this._makeBouncyButton(commentBtn, 0.6, () => this._showLevelComments(levelData.id, levelData.name || "Level"));
+
+    if (localStorage.getItem("loggedIn") === "true") {
+      const rateLbl = this.add.bitmapText(cx, panelY + 210, "goldFont", "Rate:", 18).setOrigin(0.5).setDepth(152);
+      container.add(rateLbl);
+      for (let s = 1; s <= 5; s++) {
+        const star = this.add.text(cx + (s - 3) * 50, panelY + 240, "\u2605", { fontSize: "32px", color: "#FFD700", fontFamily: "Arial" }).setOrigin(0.5).setDepth(152).setInteractive();
+        container.add(star);
+        star.on("pointerup", () => this._rateStars(levelData.id, s));
+      }
+    }
+
+    const backBtn = this.add.image(50, 48, "GJ_GameSheet03", "GJ_arrow_03_001.png").setFlipX(true).setFlipY(true).setRotation(Math.PI).setInteractive().setDepth(152);
+    this._makeBouncyButton(backBtn, 1, () => {
+      blocker.removeInteractive(); container.destroy(); overlay.destroy(); blocker.destroy();
+      this._levelPageOverlay = null;
+    });
+    container.add(backBtn);
+    this._levelPageOverlay = { overlay, blocker, container };
+  }
+
+  async _likeLevel(levelId, isLike) {
+    if (localStorage.getItem("loggedIn") !== "true") return await showError("Log in to like levels!");
+    try {
+      const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+      const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&itemID=${levelId}&type=1&like=${isLike ? 1 : 0}&secret=Wmfd2893gb7`;
+      const res = await fetch(`${PROXY}/likeGJItem21.php`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
+      const text = await res.text();
+      if (text === "-1") await showError("Failed to submit like.");
+      else { this._achieveFirstLike = true; this._likesGiven++; this._checkAchievements(); }
+    } catch (e) { await showError("Error submitting like."); }
+  }
+
+  async _rateStars(levelId, stars) {
+    if (localStorage.getItem("loggedIn") !== "true") return await showError("Log in to rate levels!");
+    try {
+      const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+      const body = `accountID=${localStorage.getItem("aid")}&gjp2=${localStorage.getItem("gjp2")}&levelID=${levelId}&stars=${stars}&secret=Wmfd2893gb7&gameVersion=22&binaryVersion=42`;
+      const res = await fetch(`${PROXY}/rateGJStars21.php`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
+      const text = await res.text();
+      if (text === "-1") await showError("Failed to submit rating.");
+      else { this._achieveFirstRate = true; this._ratesGiven++; this._checkAchievements(); await showError("Rated " + stars + " stars!"); }
+    } catch (e) { await showError("Error submitting rating."); }
   }
 
   _hideEndLayer(_0x272eb1) {
@@ -10644,9 +10834,9 @@ _applyMirrorEffect() {
           container.destroy();
           overlay.destroy();
           blocker.destroy();
-          this._profileOverlay = null;
-        });
-        this._profileOverlay = { overlay, blocker, container };
+        this._levelCommentsOverlay = null;
+      });
+      this._levelCommentsOverlay = { overlay, blocker, container };
       } catch (e) {
         hideLoader();
       }
@@ -10747,7 +10937,7 @@ _applyMirrorEffect() {
             });
             const r = await res.text();
             hideLoader();
-            if (r && r !== "-1") { await renderComments(0); }
+            if (r && r !== "-1") { this._achieveFirstComment = true; this._commentsPosted++; this._checkAchievements(); await renderComments(0); }
             else { await showError("Failed to post comment."); }
           } catch (e) { hideLoader(); await showError("Error posting comment."); }
         });
@@ -10771,7 +10961,7 @@ _applyMirrorEffect() {
     })();
   }
   _showLevelComments(levelId, levelName) {
-    if (this._profileOverlay) return;
+    if (this._levelCommentsOverlay) return;
     (async () => {
       const sw = screenWidth, sh = screenHeight, cx = sw / 2;
       const fadeIn = this.add.graphics().setScrollFactor(0).setDepth(200);
@@ -10877,7 +11067,7 @@ _applyMirrorEffect() {
             });
             const r = await res.text();
             hideLoader();
-            if (r && r !== "-1") { await renderComments(0); }
+            if (r && r !== "-1") { this._achieveFirstComment = true; this._commentsPosted++; this._checkAchievements(); await renderComments(0); }
             else { await showError("Failed to post comment."); }
           } catch (e) { hideLoader(); await showError("Error posting comment."); }
         });
@@ -10895,9 +11085,9 @@ _applyMirrorEffect() {
         container.destroy();
         overlay.destroy();
         blocker.destroy();
-        this._profileOverlay = null;
+        this._levelCommentsOverlay = null;
       });
-      this._profileOverlay = { overlay, blocker, container };
+      this._levelCommentsOverlay = { overlay, blocker, container };
     })();
   }
 }
