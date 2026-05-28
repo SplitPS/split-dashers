@@ -228,12 +228,40 @@ async function customPassword(message, defaultValue = '') {
   return text;
 
 }
+const _LOADING_MESSAGES = [
+  "Summoning the GD servers...",
+  "Polishing the cubes...",
+  "Feeding the icon kitty...",
+  "Counting orbs...",
+  "Bribing the elder mods...",
+  "Downloading more ram...",
+  "Rendering the impossible...",
+  "Spinning the loading circle...",
+  "Consulting the magic tablet...",
+  "Aligning the 72nd axis...",
+  "Petting the progress bar...",
+  "Initiating the what-the-heck protocol...",
+  "Compiling memes...",
+  "Tuning the dual portals...",
+  "Inflating the wave trail...",
+  "Decrypting the vault codes...",
+  "Charging the ground pound...",
+  "Warming up the NJS...",
+  "Calibrating the physics engine...",
+  "Convincing RobTop to add it...",
+  "Deploying the sneak peek...",
+  "Refueling the arrow triggers...",
+  "Balancing the orbs...",
+  "Unlocking the secret way...",
+  "Sweeping the spikes...",
+];
+
 /**
  * Opens a blocking loading spinner modal.
  * @param {string} title - The header text for the loader (Defaults to "Loading")
  * @param {string} text - Optional sub-text/description below the spinner
  */
-function showLoader(title = "Loading", text = "Please wait...") {
+function showLoader(title = "Loading", text = _LOADING_MESSAGES[Math.floor(Math.random() * _LOADING_MESSAGES.length)]) {
   // We return Swal.fire directly so it sets up the window overlay natively
   Swal.fire({
     title: title,
@@ -688,6 +716,13 @@ const _ACHIEVEMENTS = [
   { id: "practice_1",  name: "Practice Makes Perfect", desc: "Beat a level in practice mode", icon: 4 },
   { id: "secret_early_death", name: "Oops!",   desc: "Die in the first 5 seconds", icon: 6, hidden: true },
   { id: "secret_speedrun",    name: "Speedrunner",   desc: "Complete a level in under 30s", icon: 6, hidden: true },
+  { id: "attempt_100k", name: "Masochist", desc: "100,000 attempts", icon: 2 },
+  { id: "death_100k",   name: "Respawn Champion", desc: "Die 100,000 times", icon: 1 },
+  { id: "lvl_25",       name: "Level Collector", desc: "Complete 25 levels", icon: 3 },
+  { id: "lvl_50",       name: "Level Addict", desc: "Complete 50 levels", icon: 3 },
+  { id: "lvl_100",      name: "Centurion", desc: "Complete 100 levels", icon: 3 },
+  { id: "secret_attempt_69", name: "Nice", desc: "Have exactly 69 attempts", icon: 6, hidden: true },
+  { id: "secret_pause", name: "Taking a Break", desc: "Pause the game mid-air", icon: 6, hidden: true },
 ];
 
 const _ACHIEVEMENT_ICONS = [
@@ -993,7 +1028,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         .setScrollFactor(0).setDepth(101).setInteractive();
 
       const cornerTL = this.add.image(0,  0,  "GJ_GameSheet03", "GJ_sideArt_001.png")
-        .setScrollFactor(0).setDepth(100).setOrigin(1, 0).setFlipX(false).setAngle(-90)
+        .setScrollFactor(0).setDepth(102).setOrigin(1, 0).setFlipX(false).setAngle(-90)
       const cornerBL = this.add.image(0,  sh, "GJ_GameSheet03", "GJ_sideArt_001.png")
         .setScrollFactor(0).setDepth(152).setOrigin(1, 1).setFlipY(true).setAngle(90)
 
@@ -1045,6 +1080,8 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         const isHighscoreButton = frame === "GJ_highscoreBtn_001.png";
         const isDailyButton    = frame === "GJ_dailyBtn_001.png";
         const isWeeklyButton   = frame === "GJ_weeklyBtn_001.png";
+        const isListsButton    = frame === "GJ_listsBtn_001.png";
+        const isMapPacksButton = frame === "GJ_mapPacksBtn_001.png";
         if (isSearchButton) {
           btn.setInteractive();
           this._makeBouncyButton(btn, btnScale, () => {
@@ -1086,6 +1123,18 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           this._makeBouncyButton(btn, btnScale, () => {
             this._closeCreatorMenu(true);
             this._playOnlineLevel(-2);
+          }, () => true);
+        } else if (isListsButton) {
+          btn.setInteractive();
+          this._makeBouncyButton(btn, btnScale, () => {
+            this._closeCreatorMenu(true);
+            this._openListsScene();
+          }, () => true);
+        } else if (isMapPacksButton) {
+          btn.setInteractive();
+          this._makeBouncyButton(btn, btnScale, () => {
+            this._closeCreatorMenu(true);
+            this._openMapPacksScene();
           }, () => true);
         } else {
           btn.setTint(0x666666);
@@ -1217,6 +1266,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
         this._scrollTargetY = maxY;
         this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
             if (!this._editorOverlay) return;
+            if (pointer.x < tableX || pointer.x > tableX + tableW || pointer.y < tableY || pointer.y > tableY + tableH) return;
             this._scrollTargetY -= deltaY;
             this._scrollTargetY = Phaser.Math.Clamp(this._scrollTargetY, minY, maxY);
 
@@ -1229,11 +1279,13 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
             });
         });
         blocker.on('pointerdown', (pointer) => {
+            if (pointer.x < tableX || pointer.x > tableX + tableW || pointer.y < tableY || pointer.y > tableY + tableH) return;
             startY = pointer.y - listContainer.y;
         });
 
         blocker.on('pointermove', (pointer) => {
             if (pointer.isDown) {
+                if (pointer.x < tableX || pointer.x > tableX + tableW || pointer.y < tableY || pointer.y > tableY + tableH) return;
                 listContainer.y = pointer.y - startY;
                 listContainer.y = Phaser.Math.Clamp(listContainer.y, minY, maxY);
             }
@@ -1898,6 +1950,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       }
     };
     this._closeEditorMenu = () => {
+        hideLoader();
         if (this._editorObjects) {
             for (const obj of this._editorObjects) if (obj && obj.destroy) obj.destroy();
         }
@@ -2382,7 +2435,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
           });
         });
       };
-      this._searchOverlayObjects.push(overlay, blocker, backBtn);
+      this._searchOverlayObjects.push(overlay, blocker, backBtn, gfx, cornerBR, cornerBL, innerBtn1, innerBtn2, innerBtn3, placeholderLabel, typedLabel, inputCursor, inputHitZone);
       if (window.levelID && !window.alreadydownloaded) { // if there's an ID parameter, load it directly
         window.alreadydownloaded = true;
         htmlInput.remove();
@@ -2408,6 +2461,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     };
     this._closeSearchMenu = (silent = false, onComplete = null) => {
       if (!this._searchOverlay) return;
+      hideLoader();
       if (this._searchHtmlInput) {
         this._searchHtmlInput.remove();
         this._searchHtmlInput = null;
@@ -3096,8 +3150,9 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     };
     this._closeCreatorMenu = (silent = false) => {
       if (!this._creatorOverlay) return;
-      if (silent == false) this._creatorMenuOpen = false;
+      hideLoader();
       const destroy = () => {
+        this._creatorMenuOpen = false;
         if (this._creatorOverlayObjects) {
           for (const obj of this._creatorOverlayObjects) {
             if (obj && obj.destroy) obj.destroy();
@@ -3581,7 +3636,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
     const cardX = cx;
     const cardY = cy - 100;
     const cardSlideContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(152);
-    const cardBounceContainer = this.add.container(cardX, cardY).setScrollFactor(0).setDepth(0);
+    const cardBounceContainer = this.add.container(cardX, cardY).setScrollFactor(0).setDepth(152);
     cardSlideContainer.add(cardBounceContainer);
     const cardContainer = cardSlideContainer;
     const cardBg = this.add.graphics();
@@ -4084,6 +4139,7 @@ this._menuFsBtn = this.add.image(33, 33, "GJ_WebSheet", _0x28fa5b ? "toggleFulls
       this._audio.pauseMusic();
       this._setParticleTimeScale(0);
       this._buildPauseOverlay();
+      this._achievePaused = true;
     }
   }
   _resumeGame() {
@@ -6365,7 +6421,8 @@ buildAccountInfo() {
     }
     if (this._menuActive) {
       const _anyOverlayOpen = this._iconOverlay || this._creatorOverlay || this._searchOverlay ||
-        this._onlineLevelsOverlay || this._settingsLayerOverlay || this._settingsPopup ||
+        this._onlineLevelsOverlay || this._listsOverlay || this._mapPacksOverlay || this._listDetailOverlay ||
+        this._settingsLayerOverlay || this._settingsPopup ||
         this._infoPopup || this._newgroundsPopup || this._statsLayerOverlay || this._updateLogPopup;
       if (!_anyOverlayOpen && (this._spaceKey.isDown || this._upKey.isDown || this._wKey.isDown) && !this._spaceWasDown) {
         if (this._creatorMenuOpen) return;
@@ -8741,6 +8798,13 @@ _applyMirrorEffect() {
         case "practice_1": unlocked = this._achievePracticeBest() >= 100; break;
         case "secret_early_death": unlocked = this._achieveEarlyDeath; break;
         case "secret_speedrun": unlocked = this._achieveSpeedrun; break;
+        case "attempt_100k": unlocked = stats.attempts >= 100000; break;
+        case "death_100k": unlocked = stats.deaths >= 100000; break;
+        case "lvl_25": unlocked = stats.completed >= 25; break;
+        case "lvl_50": unlocked = stats.completed >= 50; break;
+        case "lvl_100": unlocked = stats.completed >= 100; break;
+        case "secret_attempt_69": unlocked = stats.attempts >= 69; break;
+        case "secret_pause": unlocked = this._achievePaused; break;
       }
       if (unlocked) {
         this._unlockAchievement(ach.id, !notified);
@@ -9537,7 +9601,7 @@ _applyMirrorEffect() {
     }
     objects.push(bgGfx);
     const blocker = this.add.zone(sw / 2, sh / 2, sw, sh)
-      .setScrollFactor(0).setDepth(200).setInteractive();
+      .setScrollFactor(0).setDepth(201).setInteractive();
     objects.push(blocker);
     const cBL = this.add.image(0, sh, "GJ_GameSheet03", "GJ_sideArt_001.png")
       .setScrollFactor(0).setDepth(201).setOrigin(1, 1).setFlipY(true).setAngle(90);
@@ -9615,6 +9679,7 @@ _applyMirrorEffect() {
       .setScrollFactor(0).setDepth(204).setOrigin(0.5).setInteractive();
     objects.push(backBtn);
     const closeOverlay = () => {
+      hideLoader();
       const fadeOut = this.add.graphics().setScrollFactor(0).setDepth(400).setAlpha(0);
       fadeOut.fillStyle(0x000000, 1);
       fadeOut.fillRect(0, 0, sw, sh);
@@ -9631,11 +9696,9 @@ _applyMirrorEffect() {
     const prevBtn = this.add.image(40, sh / 2, "GJ_GameSheet03", "GJ_arrow_03_001.png")
       .setScrollFactor(0).setDepth(204).setOrigin(0.5).setInteractive().setVisible(false);
     objects.push(prevBtn);
-    this._makeBouncyButton(prevBtn, 1, () => {});
     const nextBtn = this.add.image(sw - 40, sh / 2, "GJ_GameSheet03", "GJ_arrow_03_001.png")
       .setScrollFactor(0).setDepth(204).setOrigin(0.5).setInteractive().setFlipX(true).setVisible(false);
     objects.push(nextBtn);
-    this._makeBouncyButton(nextBtn, 1, () => {});
 
     return { overlay: bgGfx, objects, listLeft, listTop, panelW, panelH,
              panelCX, panelCY, addRow, clearRows, prevBtn, nextBtn,
@@ -9664,8 +9727,8 @@ _applyMirrorEffect() {
         .setScrollFactor(0).setDepth(204).setOrigin(0.5);
       objects.push(header);
       const pageBtnGroup = this.add.container(sw - 35, sh / 2 - 240);
-      const pageBtn = this.add.image(0, 0, "GJ_button02").setScale(0.7);
-      const pageNum = this.add.bitmapText(-2, 0, "bigFont", "1", 35).setOrigin(0.5);
+      const pageBtn = this.add.image(0, 0, "GJ_button02").setScale(0.7).setScrollFactor(0);
+      const pageNum = this.add.bitmapText(-2, 0, "bigFont", "1", 35).setOrigin(0.5).setScrollFactor(0);
       pageBtnGroup.add(pageBtn);
       pageBtnGroup.add(pageNum);
       const _pageBtnFrame = this.textures.getFrame("GJ_button02");
@@ -9712,6 +9775,7 @@ _applyMirrorEffect() {
     let currentPage = 0;
     const cache = {};
     let activeCellObjs = [];
+    let _destroyed = false;
     let _loading = false;
     let scrollOffsetY = 0;
     let _lastLevelStrs = null;
@@ -9921,6 +9985,7 @@ _applyMirrorEffect() {
               : ("Song #" + (m["12"] || "0"))
           };
         });
+        if (_destroyed) return;
         _lastLevelData.forEach((levelData, idx) => {
           const cellObjs = _buildLevelCell(levelData, idx);
           activeCellObjs.push(...cellObjs);
@@ -9935,8 +10000,8 @@ _applyMirrorEffect() {
     };
     prevBtn.removeAllListeners("pointerup");
     nextBtn.removeAllListeners("pointerup");
-    prevBtn.on("pointerup", () => { if (!_loading && currentPage > 0) _setPage(currentPage - 1); });
-    nextBtn.on("pointerup", () => { if (!_loading) _setPage(currentPage + 1); });
+    this._makeBouncyButton(prevBtn, 1, () => { if (!_loading && currentPage > 0) _setPage(currentPage - 1); });
+    this._makeBouncyButton(nextBtn, 1, () => { if (!_loading) _setPage(currentPage + 1); });
     this._makeBouncyButton(refreshBtn, 1, () => { delete cache[currentPage]; _setPage(currentPage); });
     const _onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (pointer.x < listLeft || pointer.x > listLeft + panelW) return;
@@ -9945,6 +10010,7 @@ _applyMirrorEffect() {
       const newScrollOffset = Math.max(0, Math.min(scrollOffsetY + deltaY * 0.5, maxScroll));
       if (newScrollOffset !== scrollOffsetY) {
         scrollOffsetY = newScrollOffset;
+        if (_destroyed) return;
         for (const o of activeCellObjs) if (o && o.destroy) o.destroy();
         activeCellObjs = [];
         if (_lastLevelData) _lastLevelData.forEach((levelData, idx) => {
@@ -9988,6 +10054,7 @@ _applyMirrorEffect() {
       }    
       if (newScrollOffset !== scrollOffsetY) {
         scrollOffsetY = newScrollOffset;
+        if (_destroyed) return;
         for (const o of activeCellObjs) if (o && o.destroy) o.destroy();
         activeCellObjs = [];
         if (_lastLevelData) _lastLevelData.forEach((levelData, idx) => {
@@ -10043,6 +10110,7 @@ _applyMirrorEffect() {
     objects.push({ destroy: () => this.input.off('pointermove', onDragMove) });
     objects.push({ destroy: () => this.input.off('pointerup', onDragEnd) });
     objects.push({ destroy: () => {
+      _destroyed = true;
       for (const o of activeCellObjs) if (o && o.destroy) o.destroy();
       activeCellObjs = [];
     }});
@@ -10057,6 +10125,392 @@ _applyMirrorEffect() {
       }
       this._onlineLevelsOverlay = null;
     }
+  }
+
+  _openListsScene() {
+    if (this._listsOverlay) return;
+    const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+    const shell = this._openListScene("Lists", 76, () => { this._listsOverlay = null; this._openCreatorMenu(); });
+    const { objects, addRow, clearRows, prevBtn, nextBtn, pageLbl, closeOverlay, redrawStripes } = shell;
+    this._listsOverlay = shell.overlay;
+    let currentPage = 0, _loading = false, _listData = [], scrollOffsetY = 0, _destroyed = false;
+    const activeCells = [];
+    const boundaryTop = shell.listTop + 12;
+    const boundaryBottom = shell.listTop + shell.panelH - 22;
+
+    const maskShape = this.add.graphics().setScrollFactor(0);
+    maskShape.fillStyle(0xffffff);
+    maskShape.fillRect(shell.listLeft, boundaryTop, shell.panelW, boundaryBottom - boundaryTop);
+    const mask = maskShape.createGeometryMask();
+    objects.push(maskShape);
+
+    const _diffFrames = [
+      "difficulty_00_btn_001.png", "difficulty_01_btn_001.png",
+      "difficulty_02_btn_001.png", "difficulty_03_btn_001.png",
+      "difficulty_04_btn_001.png", "difficulty_05_btn_001.png",
+      "difficulty_06_btn_001.png", "difficulty_07_btn_001.png",
+      "difficulty_08_btn_001.png", "difficulty_09_btn_001.png",
+      "difficulty_10_btn_001.png", "difficulty_auto_btn_001.png"
+    ];
+
+    const _buildCell = (list, idx) => {
+      const ry = boundaryTop + idx * 76 - scrollOffsetY;
+      if (ry + 76 < boundaryTop || ry > boundaryBottom) return [];
+      const objs = [];
+      const bg = this.add.rectangle(shell.listLeft + shell.panelW / 2, ry + 2, shell.panelW - 8, 72, 0x000000, 0.35)
+        .setScrollFactor(0).setDepth(202);
+      objs.push(bg);
+      const nameTxt = this.add.bitmapText(shell.listLeft + 15, ry + 12, "bigFont", list.name, 28)
+        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+      objs.push(nameTxt);
+      const authorTxt = this.add.bitmapText(shell.listLeft + 15, ry + 42, "goldFont", "by " + list.author, 18)
+        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+      objs.push(authorTxt);
+      const countTxt = this.add.bitmapText(shell.listLeft + shell.panelW - 110, ry + 20, "goldFont", list.count + " levels", 20)
+        .setOrigin(0.5).setScrollFactor(0).setDepth(203);
+      objs.push(countTxt);
+      const playBtn = this.add.image(shell.listLeft + shell.panelW - 40, ry + 50, "GJ_GameSheet03", "GJ_playBtn2_001.png")
+        .setScrollFactor(0).setDepth(204).setInteractive().setScale(0.45);
+      objs.push(playBtn);
+      this._makeBouncyButton(playBtn, 0.45, () => {
+        if (list.levelIds.length > 0) {
+          this._openListDetailScene(list);
+        }
+      });
+      return objs;
+    };
+
+    const _rebuild = () => {
+      if (_destroyed) return;
+      for (const o of activeCells) if (o && o.destroy) o.destroy();
+      activeCells.length = 0;
+      clearRows();
+      _listData.forEach((item, idx) => {
+        const cells = _buildCell(item, idx);
+        activeCells.push(...cells);
+        addRow();
+      });
+      redrawStripes(scrollOffsetY);
+    };
+
+    const _setPage = async (page) => {
+      if (_loading) return;
+      _loading = true;
+      currentPage = page;
+      for (const o of activeCells) if (o && o.destroy) o.destroy();
+      activeCells.length = 0;
+      clearRows();
+      prevBtn.setVisible(false);
+      nextBtn.setVisible(false);
+      try {
+        const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+        const body = `secret=Wmfd2893gb7&type=6&page=${page}&gameVersion=22&binaryVersion=42`;
+        const res = await fetch(`${PROXY}/getGJLevelLists.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!text || text === "-1") throw new Error("no results");
+        const sections = text.split("#");
+        const listStrs = (sections[0] || "").split("|").filter(Boolean);
+        const creatorStrs = (sections[1] || "").split("|").filter(Boolean);
+        const pageInfo = (sections[2] || "0:0:10").split(":");
+        const creatorMap = {};
+        for (const cs of creatorStrs) {
+          const p = cs.split(":");
+          if (p.length >= 2) creatorMap[p[0]] = p[1];
+        }
+        _listData = listStrs.map(ls => {
+          const m = {};
+          const parts = ls.split(":");
+          for (let i = 0; i + 1 < parts.length; i += 2) m[parts[i]] = parts[i + 1];
+          const levelIds = (m["51"] || "").split(",").map(s => parseInt(s)).filter(n => !isNaN(n) && n > 0);
+          return {
+            id: parseInt(m["1"]) || 0,
+            name: m["2"] || "Unknown",
+            author: creatorMap[m["49"]] || localStorage.getItem("username") || "Unknown",
+            count: levelIds.length,
+            levelIds
+          };
+        });
+        const total = parseInt(pageInfo[0]) || 0;
+        const count = parseInt(pageInfo[2]) || 10;
+        const start = count * page + 1;
+        const end = count * (page + 1);
+        pageLbl.setText(`${start} to ${end} of ${total}`);
+        pageLbl.setVisible(true);
+        prevBtn.setVisible(page > 0);
+        const hasNext = (page + 1) * count < total;
+        nextBtn.setVisible(hasNext);
+        scrollOffsetY = 0;
+        _rebuild();
+      } catch (err) {}
+      _loading = false;
+    };
+
+    prevBtn.removeAllListeners("pointerup");
+    nextBtn.removeAllListeners("pointerup");
+    this._makeBouncyButton(prevBtn, 1, () => { if (!_loading && currentPage > 0) _setPage(currentPage - 1); });
+    this._makeBouncyButton(nextBtn, 1, () => { if (!_loading) _setPage(currentPage + 1); });
+
+    const _onWheel = (pointer, g, dx, dy) => {
+      if (pointer.x < shell.listLeft || pointer.x > shell.listLeft + shell.panelW) return;
+      if (pointer.y < shell.listTop || pointer.y > shell.listTop + shell.panelH) return;
+      const maxScroll = Math.max(0, _listData.length * 76 - (shell.panelH - 33));
+      const ns = Math.max(0, Math.min(scrollOffsetY + dy * 0.5, maxScroll));
+      if (ns !== scrollOffsetY) {
+        scrollOffsetY = ns;
+        _rebuild();
+      }
+    };
+    this.input.on("wheel", _onWheel);
+    objects.push({ destroy: () => this.input.off("wheel", _onWheel) });
+    objects.push({ destroy: () => { _destroyed = true; for (const o of activeCells) if (o && o.destroy) o.destroy(); activeCells.length = 0; } });
+
+    _setPage(0);
+  }
+
+  _openMapPacksScene() {
+    if (this._mapPacksOverlay) return;
+    const sw = screenWidth, sh = screenHeight, cx = sw / 2;
+    const shell = this._openListScene("Map Packs", 76, () => { this._mapPacksOverlay = null; this._openCreatorMenu(); });
+    const { objects, addRow, clearRows, prevBtn, nextBtn, pageLbl, closeOverlay, redrawStripes } = shell;
+    this._mapPacksOverlay = shell.overlay;
+    let currentPage = 0, _loading = false, _packData = [], scrollOffsetY = 0, _destroyed = false;
+    const activeCells = [];
+    const boundaryTop = shell.listTop + 12;
+    const boundaryBottom = shell.listTop + shell.panelH - 22;
+
+    const maskShape = this.add.graphics().setScrollFactor(0);
+    maskShape.fillStyle(0xffffff);
+    maskShape.fillRect(shell.listLeft, boundaryTop, shell.panelW, boundaryBottom - boundaryTop);
+    const mask = maskShape.createGeometryMask();
+    objects.push(maskShape);
+
+    const _buildCell = (pack, idx) => {
+      const ry = boundaryTop + idx * 76 - scrollOffsetY;
+      if (ry + 76 < boundaryTop || ry > boundaryBottom) return [];
+      const objs = [];
+      const colorVal = pack.color1;
+      const r = (colorVal >> 16) & 0xff, g = (colorVal >> 8) & 0xff, b = colorVal & 0xff;
+      const bg = this.add.rectangle(shell.listLeft + shell.panelW / 2, ry + 2, shell.panelW - 8, 72, 0x000000, 0.35)
+        .setScrollFactor(0).setDepth(202);
+      objs.push(bg);
+      const tintBg = this.add.rectangle(shell.listLeft + 2, ry + 2, 8, 72, colorVal, 0.6)
+        .setScrollFactor(0).setDepth(202).setOrigin(0, 0);
+      objs.push(tintBg);
+      const nameTxt = this.add.bitmapText(shell.listLeft + 20, ry + 12, "bigFont", pack.name, 28)
+        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+      objs.push(nameTxt);
+      const infoTxt = this.add.bitmapText(shell.listLeft + 20, ry + 42, "goldFont", pack.stars + "★ " + pack.coins + "♦ " + pack.diamonds + "♦", 18)
+        .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+      objs.push(infoTxt);
+      const countTxt = this.add.bitmapText(shell.listLeft + shell.panelW - 110, ry + 20, "goldFont", pack.levelIds.length + " levels", 20)
+        .setOrigin(0.5).setScrollFactor(0).setDepth(203);
+      objs.push(countTxt);
+      const playBtn = this.add.image(shell.listLeft + shell.panelW - 40, ry + 50, "GJ_GameSheet03", "GJ_playBtn2_001.png")
+        .setScrollFactor(0).setDepth(204).setInteractive().setScale(0.45);
+      objs.push(playBtn);
+      this._makeBouncyButton(playBtn, 0.45, () => {
+        if (pack.levelIds.length > 0) {
+          this._openListDetailScene({ name: pack.name, count: pack.levelIds.length, levelIds: pack.levelIds });
+        }
+      });
+      return objs;
+    };
+
+    const _rebuild = () => {
+      if (_destroyed) return;
+      for (const o of activeCells) if (o && o.destroy) o.destroy();
+      activeCells.length = 0;
+      clearRows();
+      _packData.forEach((item, idx) => {
+        const cells = _buildCell(item, idx);
+        activeCells.push(...cells);
+        addRow();
+      });
+      redrawStripes(scrollOffsetY);
+    };
+
+    const _setPage = async (page) => {
+      if (_loading) return;
+      _loading = true;
+      currentPage = page;
+      for (const o of activeCells) if (o && o.destroy) o.destroy();
+      activeCells.length = 0;
+      clearRows();
+      prevBtn.setVisible(false);
+      nextBtn.setVisible(false);
+      try {
+        const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+        const body = `secret=Wmfd2893gb7&page=${page}&gameVersion=22&binaryVersion=42&gdw=0`;
+        const res = await fetch(`${PROXY}/getGJMapPacks21.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!text || text === "-1") throw new Error("no results");
+        const sections = text.split("#");
+        const packStrs = (sections[0] || "").split("|").filter(Boolean);
+        const pageInfo = (sections[1] || "0:0:10").split(":");
+        _packData = packStrs.map(ps => {
+          const m = {};
+          const parts = ps.split(":");
+          for (let i = 0; i + 1 < parts.length; i += 2) m[parts[i]] = parts[i + 1];
+          const levelIds = (m["3"] || "").split(",").map(s => parseInt(s)).filter(n => !isNaN(n) && n > 0);
+          const c1 = (m["7"] || "255,255,255").split(",");
+          const color1 = (parseInt(c1[0]) || 255) << 16 | (parseInt(c1[1]) || 255) << 8 | (parseInt(c1[2]) || 255);
+          return {
+            id: parseInt(m["1"]) || 0,
+            name: m["2"] || "Unknown",
+            stars: parseInt(m["4"]) || 0,
+            coins: parseInt(m["5"]) || 0,
+            diamonds: parseInt(m["6"]) || 0,
+            color1,
+            levelIds
+          };
+        });
+        const total = parseInt(pageInfo[0]) || 0;
+        const count = parseInt(pageInfo[2]) || 10;
+        const start = count * page + 1;
+        const end = count * (page + 1);
+        pageLbl.setText(`${start} to ${end} of ${total}`);
+        pageLbl.setVisible(true);
+        prevBtn.setVisible(page > 0);
+        const hasNext = (page + 1) * count < total;
+        nextBtn.setVisible(hasNext);
+        scrollOffsetY = 0;
+        _rebuild();
+      } catch (err) {}
+      _loading = false;
+    };
+
+    prevBtn.removeAllListeners("pointerup");
+    nextBtn.removeAllListeners("pointerup");
+    this._makeBouncyButton(prevBtn, 1, () => { if (!_loading && currentPage > 0) _setPage(currentPage - 1); });
+    this._makeBouncyButton(nextBtn, 1, () => { if (!_loading) _setPage(currentPage + 1); });
+
+    const _onWheel = (pointer, g, dx, dy) => {
+      if (pointer.x < shell.listLeft || pointer.x > shell.listLeft + shell.panelW) return;
+      if (pointer.y < shell.listTop || pointer.y > shell.listTop + shell.panelH) return;
+      const maxScroll = Math.max(0, _packData.length * 76 - (shell.panelH - 33));
+      const ns = Math.max(0, Math.min(scrollOffsetY + dy * 0.5, maxScroll));
+      if (ns !== scrollOffsetY) {
+        scrollOffsetY = ns;
+        _rebuild();
+      }
+    };
+    this.input.on("wheel", _onWheel);
+    objects.push({ destroy: () => this.input.off("wheel", _onWheel) });
+    objects.push({ destroy: () => { _destroyed = true; for (const o of activeCells) if (o && o.destroy) o.destroy(); activeCells.length = 0; } });
+
+    _setPage(0);
+  }
+
+  _openListDetailScene(listData) {
+    if (this._listDetailOverlay) return;
+    const sw = screenWidth, sh = screenHeight;
+    const shell = this._openListScene(listData.name + " (" + listData.count + " levels)", 56,
+      () => { this._listDetailOverlay = null; });
+    const { objects, listLeft, listTop, panelW, panelH, addRow, clearRows, redrawStripes } = shell;
+    this._listDetailOverlay = shell.overlay;
+    const levelIds = listData.levelIds;
+    const loadedNames = {};
+    let scrollOffsetY = 0;
+    let _destroyed = false;
+    const activeObjs = [];
+    let nameRefs = [];
+
+    const boundaryTop = listTop + 12;
+    const boundaryBottom = listTop + panelH - 22;
+
+    const _build = () => {
+      if (_destroyed) return;
+      for (const o of activeObjs) if (o && o.destroy) o.destroy();
+      activeObjs.length = 0;
+      nameRefs = [];
+      clearRows();
+      levelIds.forEach((id, idx) => {
+        const ry = boundaryTop + idx * 56 - scrollOffsetY;
+        if (ry + 56 < boundaryTop || ry > boundaryBottom) { addRow(); return; }
+        const bg = this.add.rectangle(listLeft + panelW / 2, ry + 2, panelW - 8, 52, 0x000000, 0.35)
+          .setScrollFactor(0).setDepth(202);
+        activeObjs.push(bg);
+        const displayName = loadedNames[id] || ("Level " + id);
+        const label = this.add.bitmapText(listLeft + 20, ry + 16, "bigFont", displayName, 24)
+          .setOrigin(0, 0.5).setScrollFactor(0).setDepth(203);
+        activeObjs.push(label);
+        if (!loadedNames[id]) nameRefs.push({ id, label });
+        const playBtn = this.add.image(listLeft + panelW - 40, ry + 26, "GJ_GameSheet03", "GJ_playBtn2_001.png")
+          .setScrollFactor(0).setDepth(204).setInteractive().setScale(0.4);
+        activeObjs.push(playBtn);
+        this._makeBouncyButton(playBtn, 0.4, () => {
+          for (const o of objects) if (o && o.destroy) o.destroy();
+          this._playOnlineLevel(id);
+        });
+        addRow();
+        if (idx > 0) {
+          const div = this.add.rectangle(listLeft + panelW / 2, ry, panelW - 10, 1, 0x000000, 0.3)
+            .setScrollFactor(0).setDepth(202);
+          activeObjs.push(div);
+        }
+      });
+      redrawStripes(scrollOffsetY);
+    };
+
+    _build();
+
+    // fetch level names in batch
+    (async () => {
+      const PROXY = (window._gdProxyUrl || "").replace(/\/$/, "");
+      for (let i = 0; i < levelIds.length; i += 5) {
+        const batch = levelIds.slice(i, i + 5);
+        await Promise.all(batch.map(async (id) => {
+          if (loadedNames[id]) return;
+          try {
+            const body = `secret=Wmfd2893gb7&type=0&str=${id}&gameVersion=22&binaryVersion=42`;
+            const res = await fetch(`${PROXY}/getGJLevels21.php`, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const text = await res.text();
+            if (text && text !== "-1") {
+              const first = text.split("|")[0];
+              if (!first) throw new Error("no data");
+              const m = {}; const p = first.split(":");
+              for (let j = 0; j + 1 < p.length; j += 2) m[p[j]] = p[j + 1];
+              loadedNames[id] = m["2"] || ("Level " + id);
+            } else {
+              loadedNames[id] = "Level " + id;
+            }
+          } catch (e) {
+            loadedNames[id] = "Level " + id;
+          }
+          for (const ref of nameRefs) {
+            if (ref.id === id && ref.label && ref.label.scene) {
+              ref.label.setText(loadedNames[id]);
+            }
+          }
+        }));
+      }
+    })();
+
+    const _onWheel = (pointer, g, dx, dy) => {
+      if (pointer.x < listLeft || pointer.x > listLeft + panelW) return;
+      if (pointer.y < listTop || pointer.y > listTop + panelH) return;
+      const maxScroll = Math.max(0, levelIds.length * 56 - (panelH - 33));
+      const ns = Math.max(0, Math.min(scrollOffsetY + dy * 0.5, maxScroll));
+      if (ns !== scrollOffsetY) { scrollOffsetY = ns; _build(); }
+    };
+    this.input.on("wheel", _onWheel);
+    objects.push({ destroy: () => this.input.off("wheel", _onWheel) });
+    objects.push({ destroy: () => { _destroyed = true; for (const o of activeObjs) if (o && o.destroy) o.destroy(); activeObjs.length = 0; } });
   }
 
   _hideEndLayer(_0x272eb1) {
