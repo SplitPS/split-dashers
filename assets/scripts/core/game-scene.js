@@ -740,6 +740,12 @@ const _ACHIEVEMENTS = [
   { id: "online_10", name: "Browser", desc: "Play 10 online levels", icon: 3 },
   { id: "online_100", name: "Surfer", desc: "Play 100 online levels", icon: 3 },
   { id: "secret_double", name: "Double Trouble", desc: "Beat a level in dual mode", icon: 6, hidden: true },
+  { id: "click_1", name: "Click!", desc: "Click your first button", icon: 2 },
+  { id: "click_10", name: "Tapper", desc: "Click 10 buttons", icon: 2 },
+  { id: "click_100", name: "Clicker", desc: "Click 100 buttons", icon: 2 },
+  { id: "click_1k", name: "Button Masher", desc: "Click 1,000 buttons", icon: 2 },
+  { id: "click_10k", name: "Click Addict", desc: "Click 10,000 buttons", icon: 2 },
+  { id: "click_100k", name: "Click Legend", desc: "Click 100,000 buttons", icon: 2 },
 ];
 
 const _ACHIEVEMENT_ICONS = [
@@ -5365,6 +5371,8 @@ buildAccountInfo() {
         textureX._pressed = false;
         this.tweens.killTweensOf(textureX);
         textureX.setScale(_0x57b645);
+        if (this._buttonClicks < 1000000) this._buttonClicks++;
+        this._checkAchievements();
         _0x2f13d0();
       }
     });
@@ -8859,6 +8867,12 @@ _applyMirrorEffect() {
       else if (aId === "secret_attempt_69") unlocked = stats.attempts >= 69;
       else if (aId === "secret_pause") unlocked = this._achievePaused;
       else if (aId === "secret_double") unlocked = false;
+      else if (aId === "click_1") unlocked = this._buttonClicks >= 1;
+      else if (aId === "click_10") unlocked = this._buttonClicks >= 10;
+      else if (aId === "click_100") unlocked = this._buttonClicks >= 100;
+      else if (aId === "click_1k") unlocked = this._buttonClicks >= 1000;
+      else if (aId === "click_10k") unlocked = this._buttonClicks >= 10000;
+      else if (aId === "click_100k") unlocked = this._buttonClicks >= 100000;
       else switch (aId) {
         case "jump_100": unlocked = stats.jumps >= 100; break;
         case "jump_1k": unlocked = stats.jumps >= 1000; break;
@@ -10658,7 +10672,12 @@ _applyMirrorEffect() {
     const commentBtn = this.add.image(cx + 150, btnY, "GJ_GameSheet03", "GJ_chatBtn_001.png").setScale(0.6).setDepth(152).setInteractive();
     const commentLbl = this.add.bitmapText(cx + 150, btnY + 35, "bigFont", "Comments", 16).setOrigin(0.5).setDepth(152);
     container.add([commentBtn, commentLbl]);
-    this._makeBouncyButton(commentBtn, 0.6, () => this._showLevelComments(levelData.id, levelData.name || "Level"));
+    this._makeBouncyButton(commentBtn, 0.6, () => {
+      for (const o of container.getAll()) if (o.destroy) o.destroy();
+      overlay.destroy(); blocker.destroy(); container.destroy();
+      this._levelPageOverlay = null;
+      this._showLevelComments(levelData.id, levelData.name || "Level");
+    });
 
     if (localStorage.getItem("loggedIn") === "true") {
       const rateLbl = this.add.bitmapText(cx, panelY + 210, "goldFont", "Rate:", 18).setOrigin(0.5).setDepth(152);
